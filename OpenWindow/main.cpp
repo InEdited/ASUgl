@@ -35,38 +35,49 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    return Msg.wParam;
 }
 
+bool HandleMouseMovement(LPARAM lParam) {
+		int xPos, yPos;
+		xPos = LOWORD(lParam);
+		yPos = HIWORD(lParam);
+
+		bool movement_detected_x = true;
+		bool movement_detected_y = true;
+
+		if (xPos > prev_mouse_x)
+			move_camera_right();
+		else if (xPos < prev_mouse_x)
+			move_camera_left();
+		else
+			movement_detected_x = false;
+		prev_mouse_x = xPos;
+
+		if (yPos > prev_mouse_y)
+			move_camera_up();
+		else if (yPos < prev_mouse_y)
+			move_camera_down();
+		else
+			movement_detected_y = false;
+		prev_mouse_y = yPos;
+
+		return movement_detected_x || movement_detected_y;
+}
+
+void Update_Window() {
+	render();
+	Update();
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 	case WM_MOUSEMOVE:
-		int xPos, yPos;
-			xPos = LOWORD(lParam);
-			yPos = HIWORD(lParam);
-
-		if (xPos == prev_mouse_x)
-			break;
-		else if (xPos > prev_mouse_x)
-			move_camera_right();
-		else
-			move_camera_left();
-		prev_mouse_x = xPos;
-
-		if (yPos == prev_mouse_y)
-			break;
-		else if (yPos > prev_mouse_y)
-			move_camera_up();
-		else
-			move_camera_down();
-		prev_mouse_y = yPos;
-
-		render();
-		Update();
+		if(HandleMouseMovement(lParam))
+			Update_Window();
 		break;
 	case WM_RBUTTONDOWN:
 		break;
 	case WM_LBUTTONDOWN:
-		Update();
 		break;
 	case WM_CLOSE:
 		DestroyWindow(hwnd);

@@ -11,9 +11,11 @@
 
 #define DEG2RAD M_PI/180
 #define HORIZONTAL_CAMERA_SPEED 1
+#define VERTICAL_CAMERA_SPEED 1
 
-#define NEAR_CLIP_PLANE 0.1
-#define FAR_CLIP_PLANE 5
+#define NEAR_CLIP_PLANE 0 
+#define FAR_CLIP_PLANE 15
+#define FOV 15
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -166,7 +168,7 @@ void triangle(
 			for (int i = 0; i < 3; i++) P.z += pts[i][2] * bc_coord[i];
 
 			// Coloring according to the Z-Buffer
-			if (P.z > z_buffer[(int)(P.x + P.y * screen_width)] && P.z > NEAR_CLIP_PLANE)
+			if (P.z > z_buffer[(int)(P.x + P.y * screen_width)] && P.z > 20 && P.z < 50)
 			{
 				z_buffer[(int)(P.x + P.y * screen_width)] = P.z;
 
@@ -182,6 +184,9 @@ void triangle(
 				}
 					color = color * intensity;
 				set_pixel(P.x, P.y, color_to_int(color));
+				//char debugStr[200];
+				//sprintf_s(debugStr, "%f\n", P.z);
+				//OutputDebugString(debugStr);
 			}
 		}
 	}
@@ -221,11 +226,13 @@ void move_camera_left() {
 }
 
 void move_camera_up() {
-	angle_ver += HORIZONTAL_CAMERA_SPEED;
+	angle_ver += VERTICAL_CAMERA_SPEED;
+	if (angle_ver > 90) angle_ver = 90;
 }
 
 void move_camera_down() {
-	angle_ver -= HORIZONTAL_CAMERA_SPEED;
+	angle_ver -= VERTICAL_CAMERA_SPEED;
+	if (angle_ver < -90) angle_ver = -90;
 }
 
 Matrix ViewPort = Matrix::identity();
@@ -235,16 +242,29 @@ Matrix ModelView = Matrix::identity();
 void render()
 {
 
-	Vec3f forward = Vec3f(sinf(angle_hor * DEG2RAD), -sinf(angle_ver * DEG2RAD), -cosf(angle_hor*DEG2RAD)*cosf(angle_ver*DEG2RAD));
+	Vec3f forward = Vec3f(
+		sinf(angle_hor * DEG2RAD), 
+		-sinf(angle_ver * DEG2RAD), 
+		-cosf(angle_hor*DEG2RAD) * cosf(angle_ver*DEG2RAD));
 	Vec3f right = Vec3f(sinf(angle_hor*DEG2RAD + M_PI_2), 0, 0);
 
 	center = eye + forward;
 
-	ViewPort = viewport(0, 0, screen_width, screen_height);
+	//ViewPort = viewport(0, 0, screen_width, screen_height);
+	ViewPort = viewport(screen_width / 8, screen_height / 8, screen_width * 3 / 4, screen_height * 3 / 4);
 	ModelView = lookat(eye, center, cross(right, forward));
+	Projection[0][0] = 1 / tanf(FOV * DEG2RAD);
+	Projection[1][1] = 1 / tanf(FOV * DEG2RAD);
+	Projection[2][2] = (FAR_CLIP_PLANE + NEAR_CLIP_PLANE) / (FAR_CLIP_PLANE - NEAR_CLIP_PLANE);
+	Projection[2][3] = (-2 * FAR_CLIP_PLANE * NEAR_CLIP_PLANE) / (FAR_CLIP_PLANE - NEAR_CLIP_PLANE);
 	Projection[3][2] = -1.f / (forward).norm();
+	//Projection[3][2] = 1;
+	//Projection[3][3] = 0;
 
-	Matrix z = ViewPort * Projection * ModelView * model->Transform;// *Projection * ModelView;// * model->Transform;// *Projection * ModelView * model->Transform;
+//	model->rotate(Vec3f(0, 180, 0));
+//	model->ApplyTransform();
+
+	Matrix z = ViewPort * Projection * ModelView * model->Transform;
 
 	clear_zbuffer();
 	for (int i = 0; i < model->nfaces(); i++)
@@ -262,7 +282,8 @@ void render()
 			Vec4f v4(v);
 			Vec3f coord(z * v4);
 
-			if (coord.x > 0 && coord.x < screen_height)
+			if (coord.x > 0 && coord.x < screen_width
+				&& coord.y > 0 && coord.y < screen_height)
 				out = false;
 
 			screen_coords[j] = coord;

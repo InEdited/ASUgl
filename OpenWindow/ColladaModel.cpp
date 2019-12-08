@@ -1,35 +1,22 @@
 #include "ColladaModel.h"
 
-
-
-string trim(const string& str)
-{
-	size_t first = str.find_first_not_of(' ');
-	if (string::npos == first)
-	{
-		return str;
-	}
-	size_t last = str.find_last_not_of(' ');
-	return str.substr(first, (last - first + 1));
-}
-
 ColladaModel::ColladaModel(const char* filename) : positions_(), triangles_() ,normals_()
 {
-	XMLDocument doc;
-	doc.LoadFile("resources/face.dae");
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile(filename);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	XMLElement* xml_triangle_count = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("triangles");
+	tinyxml2::XMLElement* xml_triangle_count = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("triangles");
 	int triangle_count = 0;
 	xml_triangle_count->QueryIntAttribute("count", &triangle_count);
 
-	XMLElement* xml_triangle = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("triangles")->FirstChildElement("p");
+	tinyxml2::XMLElement* xml_triangle = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("triangles")->FirstChildElement("p");
 	const char* xml2_triangle = xml_triangle->GetText();
-	stringstream str_triangle(xml2_triangle);
+	std::stringstream str_triangle(xml2_triangle);
 
-	vector<vector<Vec3i>> triangle(triangle_count, vector<Vec3i>(3, Vec3i(0, 0, 0)));
+	std::vector<std::vector<Vec3i>> triangle(triangle_count, std::vector<Vec3i>(3, Vec3i(0, 0, 0)));
 	for (int i = 0; i < triangle_count; i++)
 	{
 		int x = 0;
@@ -69,14 +56,14 @@ ColladaModel::ColladaModel(const char* filename) : positions_(), triangles_() ,n
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	XMLElement* xml_vertice = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->FirstChildElement("float_array");
+	tinyxml2::XMLElement* xml_vertice = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->FirstChildElement("float_array");
 	int vertice_count = 0;
 	xml_vertice->QueryIntAttribute("count", &vertice_count);
 
 	const char* xml2_vertice = xml_vertice->GetText();
-	stringstream str_vertice(xml2_vertice);
+	std::stringstream str_vertice(xml2_vertice);
 
-	vector<Vec3f> vertice(vertice_count / 3);
+	std::vector<Vec3f> vertice(vertice_count / 3);
 	for (int i = 0; i < vertice_count / 3; i++)
 	{
 		float x = 0;
@@ -94,14 +81,14 @@ ColladaModel::ColladaModel(const char* filename) : positions_(), triangles_() ,n
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	XMLElement* xml_normal_count = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->NextSiblingElement()->FirstChildElement("float_array");
+	tinyxml2::XMLElement* xml_normal_count = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->NextSiblingElement()->FirstChildElement("float_array");
 	int normal_count = 0;
 	xml_normal_count->QueryIntAttribute("count", &normal_count);
-	XMLElement* xml_normal = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->NextSiblingElement()->FirstChildElement("float_array");
+	tinyxml2::XMLElement* xml_normal = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->NextSiblingElement()->FirstChildElement("float_array");
 	const char* xml2_normal = xml_normal->GetText();
-	stringstream str_normal(xml2_normal);
+	std::stringstream str_normal(xml2_normal);
 
-	vector<Vec3f> normal(normal_count / 3);
+	std::vector<Vec3f> normal(normal_count / 3);
 	for (int i = 0; i < normal_count / 3; i++)
 	{
 		float x = 0;

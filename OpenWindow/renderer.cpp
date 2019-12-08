@@ -195,12 +195,6 @@ void render()
 
 	Projection[3][2] = -1.f / (eye - center).norm();
 
-	model->rotate(Vec3f(0, 0, 90));
-	model->scale(Vec3f(0.5, 0.5, 0.5));
-	model->translate(Vec3f(0.5, 0.5, -1));
-
-	model->ApplyTransform();
-	
 	Matrix z = ViewPort * Projection * ModelView * model->Transform;
 
 	init_zbuffer();

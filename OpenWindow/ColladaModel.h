@@ -17,9 +17,6 @@
 #include <vector>
 
 
-using namespace tinyxml2;
-using namespace std;
-
 class ColladaModel {
 private:
 	std::vector<Vec3f> positions_;

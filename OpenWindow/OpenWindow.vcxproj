@@ -115,18 +115,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ColladaModel.cpp" />
     <ClCompile Include="geometry.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="tgaimage.cpp" />
+    <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="util_window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ColladaModel.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="tgaimage.h" />
+    <ClInclude Include="tinyxml2.h" />
     <ClInclude Include="util_window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

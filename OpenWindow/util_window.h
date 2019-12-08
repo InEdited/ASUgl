@@ -18,13 +18,13 @@ extern HDC hdc;
 extern HDRAWDIB hdd;
 extern HDC bitmap_dc;
 extern HGDIOBJ old_obj;
-extern int screen_width;
-extern int screen_height;
+extern const int screen_width;
+extern const int screen_height;
 
 
 void init(HWND &hWnd);
 void destroy_window(); 
-HWND create_window(int width, int height, HINSTANCE &hInstance);
+HWND create_window(HINSTANCE &hInstance);
 void create_hwnd(HWND &hwnd, HINSTANCE &hInstance);
 void init_wnd_class(WNDCLASSEX &wndClass, HINSTANCE &hInstance);
 void set_pixel(unsigned int x, unsigned int y, unsigned int color);

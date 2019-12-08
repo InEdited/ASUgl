@@ -58,9 +58,9 @@ void Model::ApplyTransform() {
 }
 
 void Model::translate(Vec3f tr) {
-	Translation[0][3] += tr.x;
-	Translation[1][3] += tr.y;
-	Translation[2][3] += tr.z;
+	Translation[0][3] = tr.x;
+	Translation[1][3] = tr.y;
+	Translation[2][3] = tr.z;
 }
 void Model::rotate(Vec3f rot) {
 	rot = rot * DEG2RAD;

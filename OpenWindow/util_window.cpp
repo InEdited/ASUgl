@@ -8,8 +8,6 @@ BITMAPINFO info;
 HBITMAP hbm;
 const int BITCOUNT_PER_PIXEL = 24;
 const int title_height = 39;
-int screen_width = 0;
-int screen_height = 0;
 long long bytes_per_row;
 bool screen_changed = false;
 HDC hdc;
@@ -17,15 +15,13 @@ HDRAWDIB hdd;
 HDC bitmap_dc;
 HGDIOBJ old_obj;
 
-HWND create_window(int width, int height, HINSTANCE &hInstance) {
+HWND create_window(HINSTANCE &hInstance) {
 	HWND hWnd;
 	WNDCLASSEX wnd_class = { 0 };
 	init_wnd_class(wnd_class, hInstance);
 
 	RegisterClassEx(&wnd_class);
 
-	screen_width = width;
-	screen_height = height;
 	create_hwnd(hWnd, hInstance);
 	init(hWnd);
 
@@ -107,6 +103,16 @@ void set_pixel(unsigned int x, unsigned int y, unsigned int color) {
 		screen_changed = true;
 }
 
+void clear_screen() {
+	for (int x = 0; x < screen_width; x++)
+		for (int y = 0; y < screen_height; y++)
+			set_pixel(x, y, 0);
+}
+
 void Update() {
-   DrawDibDraw(hdd, hdc, 0, 0, screen_width, screen_height, &info.bmiHeader, pixels, 0, 0, screen_width, screen_height, 0);
+	if (screen_changed) {
+		DrawDibDraw(hdd, hdc, 0, 0, screen_width, screen_height, &info.bmiHeader, pixels, 0, 0, screen_width, screen_height, 0);
+		clear_screen();
+		screen_changed = false;
+	}
 }

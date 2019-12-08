@@ -9,6 +9,12 @@
 #include "util_window.h"
 #include <ctime>
 
+#define DEG2RAD M_PI/180
+#define HORIZONTAL_CAMERA_SPEED 1
+
+#define NEAR_CLIP_PLANE 0.1
+#define FAR_CLIP_PLANE 5
+
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
@@ -16,9 +22,17 @@ const TGAColor blue = TGAColor(0, 0, 255, 255);
 
 const int depth = 255;
 
-float* z_buffer;
+int angle_hor = 0;
+int angle_ver = 0;
+
+bool wireframe = false;
+
+
+Model* model = new Model("african_head.obj");
+
+float* z_buffer = new float[screen_width * screen_height];
 Vec3f light_dir = Vec3f(0, 0, 1).normalize();
-Vec3f eye(0, 0, 3);
+Vec3f eye(0, 0, 5);
 Vec3f center(0, 0, 0);
 
 Matrix viewport(int x, int y, int w, int h) {
@@ -33,7 +47,7 @@ Matrix viewport(int x, int y, int w, int h) {
 	return m;
 }
 
-void line(Vec2i p0, Vec2i p1, TGAImage &image, TGAColor color)
+void line(Vec3f p0, Vec3f p1, TGAColor color)
 {
 	bool steep = false;
 
@@ -59,10 +73,10 @@ void line(Vec2i p0, Vec2i p1, TGAImage &image, TGAColor color)
 
 	for (int x = p0[0]; x <= p1[0]; x++) {
 		if (steep) {
-			image.set(y, x, color);
+			set_pixel(y, x, color_to_int(color));
 		}
 		else {
-			image.set(x, y, color);
+			set_pixel(x, y, color_to_int(color));
 		}
 		error2 += derror2;
 		if (error2 > dx) {
@@ -86,124 +100,153 @@ Vec3f barycentric(Vec3f* pts, Vec3f P)
 
 void triangle(
 	Vec3f* pts,         // Needed
-	Model* model,       // Should be removed
 	Vec2f* diff_pts,    // Should be removed
-	float* intensities,
-	Vec3f camera_pos)   // Not really sure yet
+	Model* model,
+	float* intensities)
 {
 
 	if (pts[0].y == pts[1].y && pts[0].y == pts[2].y) return; // i dont care about degenerate triangles
 	if (pts[0].y > pts[1].y) {
 		std::swap(pts[0], pts[1]);
-		std::swap(diff_pts[0], diff_pts[1]);
-		std::swap(intensities[0], intensities[1]);
+		if(diff_pts)
+			std::swap(diff_pts[0], diff_pts[1]);
+		if(intensities)
+			std::swap(intensities[0], intensities[1]);
 	}
 	if (pts[0].y > pts[2].y) {
 		std::swap(pts[0], pts[2]);
-		std::swap(diff_pts[0], diff_pts[2]);
-		std::swap(intensities[0], intensities[2]);
+		if(diff_pts)
+			std::swap(diff_pts[0], diff_pts[2]);
+		if(intensities)
+			std::swap(intensities[0], intensities[2]);
 	}
 	if (pts[1].y > pts[2].y) {
 		std::swap(pts[1], pts[2]);
-		std::swap(diff_pts[1], diff_pts[2]);
-		std::swap(intensities[1], intensities[2]);
+		if(diff_pts)
+			std::swap(diff_pts[1], diff_pts[2]);
+		if(intensities)
+			std::swap(intensities[1], intensities[2]);
 	}
-	      Vec2i bounding_box_min(screen_width - 1, screen_height - 1);
-        Vec2i bounding_box_max(0, 0);
-        Vec2i clamp(screen_width - 1, screen_height - 1);
-        TGAColor color = white;
 
-        for(int i = 0; i < 3; i++) {
-                for(int j =0; j < 2; j++) {
-                        bounding_box_min[j] = std::fmax(0, std::fmin(bounding_box_min[j], (int)pts[i][j]));
-                        bounding_box_max[j] = std::fmin(clamp[j], std::fmax(bounding_box_max[j], (int)pts[i][j]));
-                }
-        }
+	if (wireframe)
+	{
+		line(pts[0], pts[1], white);
+		line(pts[1], pts[2], white);
+		line(pts[2], pts[0], white);
+		return;
+	}
 
-        Vec3f P;
-        for(P.x = bounding_box_min.x; P.x <= bounding_box_max.x; P.x++) {
-                for(P.y = bounding_box_min.y; P.y <= bounding_box_max.y; P.y++) {
-                        Vec3f bc_coord = barycentric(pts, P);
-                        if(bc_coord.x < 0 || bc_coord.y < 0 || bc_coord.z < 0) continue;
+	Vec2i bounding_box_min(screen_width - 1, screen_height - 1);
+	Vec2i bounding_box_max(0, 0);
+	Vec2i clamp(screen_width - 1, screen_height - 1);
+	TGAColor color = white;
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 2; j++) {
+			bounding_box_min[j] = std::fmax(0, std::fmin(bounding_box_min[j], (int)pts[i][j]));
+			bounding_box_max[j] = std::fmin(clamp[j], std::fmax(bounding_box_max[j], (int)pts[i][j]));
+		}
+	}
+
+	Vec3f P;
+	for (P.x = bounding_box_min.x; P.x <= bounding_box_max.x; P.x++) {
+		for (P.y = bounding_box_min.y; P.y <= bounding_box_max.y; P.y++) {
+			Vec3f bc_coord = barycentric(pts, P);
+			if (bc_coord.x < 0 || bc_coord.y < 0 || bc_coord.z < 0) continue;
 
 
-                        float intensity =
-                                intensities[0]
-                                + (intensities[1] - intensities[0]) * bc_coord[1]
-                                + (intensities[2] - intensities[0]) * bc_coord[2];
+			float intensity =
+				intensities[0]
+				+ (intensities[1] - intensities[0]) * bc_coord[1]
+				+ (intensities[2] - intensities[0]) * bc_coord[2];
 
 
-                        // Interpolating Z using the barycentric coordinates
-                        P.z = 0;
-                        for(int i = 0; i < 3; i++) P.z += pts[i][2] * bc_coord[i];
+			// Interpolating Z using the barycentric coordinates
+			P.z = 0;
+			for (int i = 0; i < 3; i++) P.z += pts[i][2] * bc_coord[i];
 
-                        // Coloring according to the Z-Buffer
-                        if (P.z > z_buffer[(int)(P.x + P.y * screen_width)])
-                        {
-                                z_buffer[(int)(P.x + P.y * screen_width)] = P.z;
+			// Coloring according to the Z-Buffer
+			if (P.z > z_buffer[(int)(P.x + P.y * screen_width)] && P.z > NEAR_CLIP_PLANE)
+			{
+				z_buffer[(int)(P.x + P.y * screen_width)] = P.z;
 
-                                // If diff_pts (Diffusemap Points) were passed, then find the
-								                     // color of the current pixel
-                                if(diff_pts) {
-                                        Vec2f diff_pt =
-                                                diff_pts[0]
-                                                + (diff_pts[1] - diff_pts[0]) * bc_coord[1]
-                                                + (diff_pts[2] - diff_pts[0]) * bc_coord[2];
+				// If diff_pts (Diffusemap Points) were passed, then find the
+									 // color of the current pixel
+				if (diff_pts) {
+					Vec2f diff_pt =
+						diff_pts[0]
+						+ (diff_pts[1] - diff_pts[0]) * bc_coord[1]
+						+ (diff_pts[2] - diff_pts[0]) * bc_coord[2];
 
-                                        color = model->diffuse(diff_pt);
-                                }
-								color = color * intensity;
-                                set_pixel(P.x, P.y, color_to_int(color));
-                        }
-                }
-        }
+					color = model->diffuse(diff_pt);
+				}
+					color = color * intensity;
+				set_pixel(P.x, P.y, color_to_int(color));
+			}
+		}
+	}
 }
 
 int color_to_int(TGAColor col) {
 	return (col[2] << 16) | (col[1] << 8) | col[0];
 }
 
-void init_zbuffer()
+void clear_zbuffer()
 {
-	z_buffer = new float[screen_width*screen_height];
 	for (int i = 0; i < screen_width * screen_height; i++)
 		z_buffer[i] = INT_MIN;
 }
 
 Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
-	Vec3f z = (eye - center).normalize();
-	Vec3f x = cross(up, z).normalize();
-	Vec3f y = cross(z, x).normalize();
-	Matrix Minv = Matrix::identity();
-	Matrix Tr = Matrix::identity();
-	for (int i = 0; i < 3; i++) {
-		Minv[0][i] = x[i];
-		Minv[1][i] = y[i];
-		Minv[2][i] = z[i];
-		Tr[i][3] = -center[i];
-	}
-	return Minv * Tr;
+    Vec3f z = (eye-center).normalize();
+    Vec3f x = cross(up,z).normalize();
+    Vec3f y = cross(z,x).normalize();
+    Matrix Minv = Matrix::identity();
+    Matrix Tr   = Matrix::identity();
+    for (int i=0; i<3; i++) {
+        Minv[0][i] = x[i];
+        Minv[1][i] = y[i];
+        Minv[2][i] = z[i];
+        Tr[i][3] = -center[i];
+    }
+    return Minv*Tr;
 }
+
+void move_camera_right() {
+	angle_hor += HORIZONTAL_CAMERA_SPEED;
+}
+
+void move_camera_left() {
+	angle_hor -= HORIZONTAL_CAMERA_SPEED;
+}
+
+void move_camera_up() {
+	angle_ver += HORIZONTAL_CAMERA_SPEED;
+}
+
+void move_camera_down() {
+	angle_ver -= HORIZONTAL_CAMERA_SPEED;
+}
+
+Matrix ViewPort = Matrix::identity();
+Matrix Projection = Matrix::identity();
+Matrix ModelView = Matrix::identity();
 
 void render()
 {
-	Model* model = new Model("african_head.obj");
 
-	Matrix ViewPort = viewport(screen_width / 8, screen_height / 8, screen_width * 3 / 4, screen_height * 3 / 4);
-	Matrix Projection = Matrix::identity();
-	Matrix ModelView = lookat(eye, center, Vec3f(0, 1, 0));
+	Vec3f forward = Vec3f(sinf(angle_hor * DEG2RAD), -sinf(angle_ver * DEG2RAD), -cosf(angle_hor*DEG2RAD)*cosf(angle_ver*DEG2RAD));
+	Vec3f right = Vec3f(sinf(angle_hor*DEG2RAD + M_PI_2), 0, 0);
 
-	Projection[3][2] = -1.f / (eye - center).norm();
+	center = eye + forward;
 
-	model->rotate(Vec3f(0, 0, 90));
-	model->scale(Vec3f(0.5, 0.5, 0.5));
-	model->translate(Vec3f(0.5, 0.5, -1));
+	ViewPort = viewport(0, 0, screen_width, screen_height);
+	ModelView = lookat(eye, center, cross(right, forward));
+	Projection[3][2] = -1.f / (forward).norm();
 
-	model->ApplyTransform();
-	
-	Matrix z = ViewPort * Projection * ModelView * model->Transform;
+	Matrix z = ViewPort * Projection * ModelView * model->Transform;// *Projection * ModelView;// * model->Transform;// *Projection * ModelView * model->Transform;
 
-	init_zbuffer();
+	clear_zbuffer();
 	for (int i = 0; i < model->nfaces(); i++)
 	{
 		std::vector<int> face = model->face(i);
@@ -211,22 +254,26 @@ void render()
 		Vec3f world_coords[3];
 		Vec2f diffuse_coords[3];
 		float intensities[3];
+		bool out = true;
 
 		for (int j = 0; j < 3; j++)
 		{
 			Vec3f v = model->vert(face[j]);
 			Vec4f v4(v);
 			Vec3f coord(z * v4);
-			
+
+			if (coord.x > 0 && coord.x < screen_height)
+				out = false;
+
 			screen_coords[j] = coord;
 			world_coords[j] = v;
 			diffuse_coords[j] = model->uv(i, j);
 			intensities[j] = model->normal(i, j) * light_dir;
 		}
 
-		triangle(screen_coords, model, diffuse_coords, intensities, Vec3f(0, 0, 5));
-	}
+		if (out) continue;
 
-	delete model;
+		triangle(screen_coords, diffuse_coords, model, intensities);
+	}
 }
 

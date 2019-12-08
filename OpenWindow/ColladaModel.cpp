@@ -9,7 +9,7 @@ ColladaModel::ColladaModel(const char* filename) : positions_(), triangles_() ,n
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	tinyxml2::XMLElement* xml_triangle_count = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("triangles");
-	int triangle_count = 0;
+	triangle_count = 0;
 	xml_triangle_count->QueryIntAttribute("count", &triangle_count);
 
 	tinyxml2::XMLElement* xml_triangle = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("triangles")->FirstChildElement("p");
@@ -57,7 +57,7 @@ ColladaModel::ColladaModel(const char* filename) : positions_(), triangles_() ,n
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	tinyxml2::XMLElement* xml_vertice = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->FirstChildElement("float_array");
-	int vertice_count = 0;
+	vertice_count = 0;
 	xml_vertice->QueryIntAttribute("count", &vertice_count);
 
 	const char* xml2_vertice = xml_vertice->GetText();
@@ -110,10 +110,18 @@ ColladaModel::ColladaModel(const char* filename) : positions_(), triangles_() ,n
 ColladaModel::~ColladaModel() {
 }
 
-std::vector<int> ColladaModel::triangle(int idx) {
+std::vector<Vec3i> ColladaModel::triangle(int idx) {
 	return triangles_[idx];
 }
 
 Vec3f ColladaModel::position(int i) {
 	return positions_[i];
+}
+
+int ColladaModel::nposition() {
+	return vertice_count;
+}
+
+int ColladaModel::ntriangle() {
+	return triangle_count;
 }

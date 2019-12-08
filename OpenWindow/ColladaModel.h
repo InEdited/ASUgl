@@ -21,13 +21,19 @@ class ColladaModel {
 private:
 	std::vector<Vec3f> positions_;
 	std::vector<Vec3f> normals_;
-	std::vector<std::vector<int> > triangles_;
+	std::vector<std::vector<Vec3i> > triangles_;
+
+	int vertice_count;
+	int triangle_count;
 public:
 	ColladaModel(const char* filename);
 	~ColladaModel();
 
 	Vec3f position(int i);
-	std::vector<int> triangle(int idx);
+	std::vector<Vec3i> triangle(int idx);
+
+	int nposition();
+	int ntriangle();
 };
 
 #endif

@@ -1,16 +1,13 @@
 #ifndef RENDERER_HEADER
 #define RENDERER_HEADER
 #include "tgaimage.h"
+#include "camera.h"
 
 
-extern int angle_hor;
-extern int angle_ver;
 extern float* z_buffer;
+extern Camera camera;
 
-void move_camera_right();
-void move_camera_left();
-void move_camera_up();
-void move_camera_down();
+void init_camera();
 void render();
 int color_to_int(TGAColor col);
 #endif

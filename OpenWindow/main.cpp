@@ -6,8 +6,10 @@
 const int screen_width = 1000;
 const int screen_height = 1000;
 
-int prev_mouse_x = 0;
-int prev_mouse_y = 0;
+#define TARGET_FRAMERATE 30
+
+int prev_mouse_x = screen_width/2;
+int prev_mouse_y = screen_height/2;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -15,18 +17,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    MSG                 Msg;
 
    hwnd = create_window(hInstance);
+   ShowCursor(false);
    ShowWindow(hwnd, nCmdShow);
 
-   char debug_str[100];
+   init_camera();
 
-   clock_t first_time = clock();
-   render();
-   clock_t end_time = clock();
-   Update();
 
-   sprintf_s(debug_str, "%f\n", (double)(end_time - first_time) / CLOCKS_PER_SEC);
-   OutputDebugString(debug_str);
-   
+   SetTimer(hwnd, NULL, 1000 / TARGET_FRAMERATE, (TIMERPROC)FixedUpdate);
+
    while (GetMessage(&Msg, NULL, 0, 0))
    {
       TranslateMessage(&Msg);
@@ -35,34 +33,49 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    return Msg.wParam;
 }
 
-bool HandleMouseMovement(LPARAM lParam) {
+bool HandleMouseMovement() {
 		int xPos, yPos;
-		xPos = LOWORD(lParam);
-		yPos = HIWORD(lParam);
+		POINT point;
+		GetCursorPos(&point);
 
 		bool movement_detected_x = true;
 		bool movement_detected_y = true;
 
-		if (xPos > prev_mouse_x)
-			move_camera_right();
-		else if (xPos < prev_mouse_x)
-			move_camera_left();
+		if (point.x > prev_mouse_x)
+			camera.rotate_camera_right();
+		else if (point.x < prev_mouse_x)
+			camera.rotate_camera_left();
 		else
 			movement_detected_x = false;
-		prev_mouse_x = xPos;
 
-		if (yPos > prev_mouse_y)
-			move_camera_up();
-		else if (yPos < prev_mouse_y)
-			move_camera_down();
+		if (point.y > prev_mouse_y)
+			camera.rotate_camera_up();
+		else if (point.y < prev_mouse_y)
+			camera.rotate_camera_down();
 		else
 			movement_detected_y = false;
-		prev_mouse_y = yPos;
 
+		SetCursorPos(prev_mouse_x, prev_mouse_y);
 		return movement_detected_x || movement_detected_y;
 }
 
-void Update_Window() {
+bool HandleButtonPressed() {
+	if (GetAsyncKeyState(VK_UP) & 0x8000)
+		camera.move_camera_forward();
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+		camera.move_camera_backward();
+	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+		camera.move_camera_right();
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+		camera.move_camera_left();
+	return true;
+}
+
+void CALLBACK FixedUpdate(HWND hwnd, UINT message, UINT uInt, DWORD dWord)
+{
+	HandleMouseMovement();
+	HandleButtonPressed();
+	camera.ApplyChanges();
 	render();
 	Update();
 }
@@ -72,8 +85,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_MOUSEMOVE:
-		if(HandleMouseMovement(lParam))
-			Update_Window();
 		break;
 	case WM_RBUTTONDOWN:
 		break;

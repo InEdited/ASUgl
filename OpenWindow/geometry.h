@@ -1,9 +1,12 @@
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <vector>
 #include <cassert>
 #include <iostream>
+
+#define DEG2RAD M_PI/180
 
 template<size_t DimCols,size_t DimRows,typename T> class mat;
 

@@ -16,6 +16,7 @@ private:
 	float vertical_camera_speed;
 	float vertical_camera_clamp_up;
 	float vertical_camera_clamp_down;
+	float movement_speed;
 
 public:
 	Camera();
@@ -30,12 +31,11 @@ public:
 	void SetHorizontalRotSpeed(float speed);
 	void SetClampRotUp(float angle);
 	void SetClampRotDown(float angle);
+	void SetMovementSpeed(float speed);
 	Vec3f GetForward();
 
-	void rotate_camera_right();
-	void rotate_camera_left();
-	void rotate_camera_up();
-	void rotate_camera_down();
+	void rotate_hor(float d_angle);
+	void rotate_ver(float d_angle);
 	void move_camera_left();
 	void move_camera_right();
 	void move_camera_forward();

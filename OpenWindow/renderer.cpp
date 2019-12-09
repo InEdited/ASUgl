@@ -9,8 +9,8 @@
 #include <ctime>
 #include "camera.h"
 
-#define HORIZONTAL_CAMERA_SPEED             1
-#define VERTICAL_CAMERA_SPEED               1
+#define HORIZONTAL_CAMERA_SPEED             0.1
+#define VERTICAL_CAMERA_SPEED               0.1
 #define VERTICAL_CAMERA_CLAMP_UP           90
 #define VERTICAL_CAMERA_CLAMP_DOWN        -90
 #define NEAR_CLIP_PLANE                     0 
@@ -18,6 +18,7 @@
 #define FOV                                30
 #define DEFAULT_CAMERA_POS Vec3f(0, 0, 5)
 #define DEFAULT_CAMERA_ROT Vec3f(0, 0, 0)
+#define CAMERA_MOVEMENT_SPEED 1.f
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -204,6 +205,7 @@ void init_camera() {
 	camera.SetClampRotUp(VERTICAL_CAMERA_CLAMP_UP);
 	camera.SetHorizontalRotSpeed(HORIZONTAL_CAMERA_SPEED);
 	camera.SetVerticalRotSpeed(VERTICAL_CAMERA_SPEED);
+	camera.SetMovementSpeed(CAMERA_MOVEMENT_SPEED);
 	camera.ApplyChanges();
 }
 

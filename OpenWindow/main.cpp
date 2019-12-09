@@ -33,30 +33,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    return Msg.wParam;
 }
 
-bool HandleMouseMovement() {
-		int xPos, yPos;
+void HandleMouseMovement() {
 		POINT point;
 		GetCursorPos(&point);
 
-		bool movement_detected_x = true;
-		bool movement_detected_y = true;
-
-		if (point.x > prev_mouse_x)
-			camera.rotate_camera_right();
-		else if (point.x < prev_mouse_x)
-			camera.rotate_camera_left();
-		else
-			movement_detected_x = false;
-
-		if (point.y > prev_mouse_y)
-			camera.rotate_camera_up();
-		else if (point.y < prev_mouse_y)
-			camera.rotate_camera_down();
-		else
-			movement_detected_y = false;
+		camera.rotate_hor(point.x - prev_mouse_x);
+		camera.rotate_ver(point.y - prev_mouse_y);
 
 		SetCursorPos(prev_mouse_x, prev_mouse_y);
-		return movement_detected_x || movement_detected_y;
 }
 
 bool HandleButtonPressed() {
@@ -73,7 +57,6 @@ bool HandleButtonPressed() {
 
 void CALLBACK FixedUpdate(HWND hwnd, UINT message, UINT uInt, DWORD dWord)
 {
-	HandleMouseMovement();
 	HandleButtonPressed();
 	camera.ApplyChanges();
 	render();
@@ -85,6 +68,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_MOUSEMOVE:
+		HandleMouseMovement();
 		break;
 	case WM_RBUTTONDOWN:
 		break;

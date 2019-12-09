@@ -15,6 +15,7 @@ Camera::Camera()
 	vertical_camera_speed = 0.5;
 	vertical_camera_clamp_up = 90;
 	vertical_camera_clamp_down = -90;
+	movement_speed = 1.f;
 }
 
 Vec3f Camera::GetForward() {
@@ -56,35 +57,31 @@ void Camera::SetFarPlane(float far_val) {
 	far_plane = far_val; 
 }
 
-
-void Camera::rotate_camera_right() { 
-	rotation.y += horizontal_camera_speed; 
+void Camera::rotate_hor(float d_angle) {
+	rotation.y += d_angle * horizontal_camera_speed;
 }
-void Camera::rotate_camera_left() { 
-	rotation.y -= horizontal_camera_speed; 
-}
-void Camera::rotate_camera_up() {
-	rotation.x += vertical_camera_speed;
-	if (rotation.x > vertical_camera_clamp_up) rotation.x = 90;
-}
-void Camera::rotate_camera_down() {
-	rotation.x -= vertical_camera_speed;
-	if (rotation.x < vertical_camera_clamp_down) rotation.x = -90;
+void Camera::rotate_ver(float d_angle) {
+	rotation.x += d_angle * vertical_camera_speed;
+	rotation.x = std::fmin(rotation.x, vertical_camera_clamp_up);
+	rotation.x = std::fmax(rotation.x, vertical_camera_clamp_down);
 }
 
-#define MOVEMENT_SPEED 0.05f;
 
 void Camera::move_camera_left() { 
-	position = position - right * MOVEMENT_SPEED;
+	position = position - right * movement_speed;
 }
 void Camera::move_camera_right() { 
-	position = position + right * MOVEMENT_SPEED;
+	position = position + right * movement_speed;
 }
 void Camera::move_camera_forward() {
-	position = position + forward * MOVEMENT_SPEED;
+	position = position + forward * movement_speed;
 }
 void Camera::move_camera_backward() {
-	position = position - forward * MOVEMENT_SPEED;
+	position = position - forward * movement_speed;
+}
+
+void Camera::SetMovementSpeed(float speed) {
+	movement_speed = speed;
 }
 
 void Camera::ApplyChanges() {

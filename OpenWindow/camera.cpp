@@ -79,27 +79,31 @@ void Camera::move_camera_forward() {
 void Camera::move_camera_backward() {
 	position = position - forward * movement_speed;
 }
+void Camera::rise() {
+	position = position + Vec3f(0, movement_speed, 0);
+}
+void Camera::fall() {
+	position = position - Vec3f(0, movement_speed, 0);
+}
 
 void Camera::SetMovementSpeed(float speed) {
 	movement_speed = speed;
 }
 
 void Camera::ApplyChanges() {
-	forward = Vec3f(sin(rotation.y * DEG2RAD), -sin(rotation.x * DEG2RAD), -cosf(rotation.y*DEG2RAD) * cosf(rotation.x*DEG2RAD));
-	right = Vec3f(cos(rotation.y*DEG2RAD), 0, sin(rotation.y * DEG2RAD));
-	up = cross(right, forward);
+	forward = Vec3f(sin(rotation.y * DEG2RAD), -sin(rotation.x * DEG2RAD), -cosf(rotation.y*DEG2RAD) * cosf(rotation.x*DEG2RAD)).normalize();
+	right = Vec3f(cos(rotation.y*DEG2RAD), 0, sin(rotation.y * DEG2RAD)).normalize();
+	up = cross(right, forward).normalize();
 }
 
 Matrix Camera::GetModelViewMatrix() {
 	Vec3f center = position + forward;
-	Vec3f z = (position - center).normalize();
-	Vec3f x = cross(up, z).normalize();
-	Vec3f y = cross(z, x).normalize();
+	Vec3f z = forward * -1;
 	Matrix Minv = Matrix::identity();
 	Matrix Tr = Matrix::identity();
 	for (int i = 0; i < 3; i++) {
-		Minv[0][i] = x[i];
-		Minv[1][i] = y[i];
+		Minv[0][i] = right[i];
+		Minv[1][i] = up[i];
 		Minv[2][i] = z[i];
 		Tr[i][3] = -center[i];
 	}

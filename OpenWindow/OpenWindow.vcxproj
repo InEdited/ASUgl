@@ -121,6 +121,7 @@
     <ClCompile Include="model.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="tgaimage.cpp" />
+    <ClCompile Include="util_renderer.cpp" />
     <ClCompile Include="util_window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +130,7 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="tgaimage.h" />
+    <ClInclude Include="util_renderer.h" />
     <ClInclude Include="util_window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

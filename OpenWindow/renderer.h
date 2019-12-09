@@ -6,6 +6,7 @@
 
 extern float* z_buffer;
 extern Camera camera;
+extern float TIME;
 
 void init_camera();
 void render();

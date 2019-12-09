@@ -40,6 +40,8 @@ public:
 	void move_camera_right();
 	void move_camera_forward();
 	void move_camera_backward();
+	void rise();
+	void fall();
 
 	void ApplyChanges();
 	Matrix GetModelViewMatrix();

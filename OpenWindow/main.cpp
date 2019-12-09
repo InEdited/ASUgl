@@ -11,6 +11,8 @@ const int screen_height = 1000;
 int prev_mouse_x = screen_width/2;
 int prev_mouse_y = screen_height/2;
 
+float TIME = 0;
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
    HWND                hwnd;
@@ -52,11 +54,16 @@ bool HandleButtonPressed() {
 		camera.move_camera_right();
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 		camera.move_camera_left();
+	if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+		camera.rise();
+	if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
+		camera.fall();
 	return true;
 }
 
 void CALLBACK FixedUpdate(HWND hwnd, UINT message, UINT uInt, DWORD dWord)
 {
+	TIME += 0.167;
 	HandleButtonPressed();
 	camera.ApplyChanges();
 	render();

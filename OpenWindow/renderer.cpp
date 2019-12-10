@@ -208,25 +208,7 @@ void my_triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) 
 
 void render()
 {
-	ColladaModel* model = new ColladaModel("african_head.dae");
-	TGAImage image(800, 800, TGAImage::RGB);
-	Vec3f light_dir(0, 0, -1);
-	for (int i = 0; i < model->ntriangle(); i++) {
-		std::vector<Vec3i> face = model->triangle(i);
-		Vec2i screen_coords[3];
-		Vec3f world_coords[3];
-		for (int j = 0; j < 3; j++) {
-			Vec3f v = face[0];
-			screen_coords[j] = Vec2i((v.x + 1.) * 800 / 2., (v.y + 1.) * 800 / 2.);
-			world_coords[j] = v;
-		}
-			my_triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255,255,255,255));
-	}
-
-	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	image.write_tga_file("output.tga");
-	delete model;
-
+	//Model* model = new Model("african_head.obj");
 	//Matrix ViewPort = viewport(screen_width / 8, screen_height / 8, screen_width * 3 / 4, screen_height * 3 / 4);
 	//Matrix Projection = Matrix::identity();
 	//Matrix ModelView = lookat(eye, center, Vec3f(0, 1, 0));
@@ -249,7 +231,7 @@ void render()
 	//		Vec3f v = model->vert(face[j]);
 	//		Vec4f v4(v);
 	//		Vec3f coord(z * v4);
-	//		
+
 	//		screen_coords[j] = coord;
 	//		world_coords[j] = v;
 	//		diffuse_coords[j] = model->uv(i, j);
@@ -259,6 +241,22 @@ void render()
 	//	triangle(screen_coords, model, diffuse_coords, intensities, Vec3f(0, 0, 5));
 	//}
 
-	//delete model;
-}
+	ColladaModel* model = new ColladaModel("african_head.dae");
+	TGAImage image(800, 800, TGAImage::RGB);
+	Vec3f light_dir(0, 0, -1);
+	for (int i = 0; i < model->nfaces(); i++) {
+		std::vector<Vec3i> face = model->face(i);
+		Vec2i screen_coords[3];
+		Vec3f world_coords[3];
+		for (int j = 0; j < 3; j++) {
+			Vec3f v = model->vertex(face[j][0]);
+			screen_coords[j] = Vec2i((v.x + 1.) * 800 / 2., (v.y + 1.) * 800 / 2.);
+			world_coords[j] = v;
+		}
+		my_triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, white);
+	}
 
+	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+	image.write_tga_file("output.tga");
+	delete model;
+}

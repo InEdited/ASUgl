@@ -61,7 +61,7 @@ void triangle( Vec4f* pts, IShader &shader)
 			float frag_depth = 0;
 			for (int i = 0; i < 3; i++)
 				frag_depth += pts3[i][2] * bc_coord[i];
-			if (bc_coord.x < 0 || bc_coord.y < 0 || bc_coord.z < 0 || z_buffer[ P.x + P.y * screen_width ]>frag_depth || frag_depth < 0) continue;
+			if (bc_coord.x < 0 || bc_coord.y < 0 || bc_coord.z < 0 || z_buffer[ P.x + P.y * screen_width ]>frag_depth) continue;
 			TGAColor color;
 			bool discard = shader.fragment(bc_coord, color);
 			if (!discard) {

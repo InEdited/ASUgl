@@ -1,12 +1,6 @@
-﻿#include <vector>
-#include <algorithm>
-#include <limits>
-#include "tgaimage.h"
-#include "model.h"
-#include "geometry.h"
+﻿#include "model.h"
 #include "renderer.h"
 #include "util_window.h"
-#include <ctime>
 #include "camera.h"
 #include "util_renderer.h"
 
@@ -20,7 +14,7 @@
 #define CAMERA_MOVEMENT_SPEED           0.05f
 #define DEFAULT_CAMERA_POS     Vec3f(0, 0, 5)
 #define DEFAULT_CAMERA_ROT     Vec3f(0, 0, 0)
-#define LIGHT_INTENSITY                     1
+#define LIGHT_INTENSITY                   2.f
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -53,7 +47,7 @@ void init_camera() {
 void clear_zbuffer()
 {
 	for (int i = 0; i < screen_width * screen_height; i++)
-		z_buffer[i] = INT_MIN;
+		z_buffer[i] = 0;
 }
 
 
@@ -64,7 +58,7 @@ struct TextureShader : public IShader {
 
 	virtual Vec4f vertex(int iface, int nthvert) {
 		varying_uv_coords.set_col(nthvert, model->uv(iface, nthvert));
-		Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert));								// read the vertex from .obj file
+		Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert));
 		return ViewPort * Projection * ModelView * gl_Vertex;									// transform it to screen coordinates
 	}
 
@@ -72,8 +66,13 @@ struct TextureShader : public IShader {
 		Vec2f uv = varying_uv_coords * bar;
 		Vec3f normal = Vec3f(uniform_mit * Vec4f(model->normal(uv))).normalize();
 		Vec3f light =  Vec3f(uniform_m * Vec4f(light_dir)).normalize();
-		float intensity = std::fmax(0.f, (normal*light*LIGHT_INTENSITY));
-		color = model->diffuse(uv) * intensity * (cos(TIME * 10 * uv.x) + sin(TIME * 10 * uv.y));
+		Vec3f reflection = (normal * (normal*light*2.f) - light).normalize();
+		float spec_intensity = pow(std::fmax(reflection.z, 0.f), model->specular(uv));
+		float diff_intensity = std::fmax(0.f, (normal*light));
+		TGAColor c = model->diffuse(uv);
+		color = c;
+		for (int i = 0; i < 3; i++)
+			color[i] = std::fmin(1 + c[i] * (diff_intensity + 0.8 * spec_intensity), 255) * LIGHT_INTENSITY;
 		return false;                         
 	}
 };
@@ -82,7 +81,7 @@ struct TextureShader : public IShader {
 void render()
 {
 	{
-		light_dir = camera.GetForward().normalize() * -1;
+		//light_dir = camera.GetForward().normalize() * -1;
 	}
 
 	{

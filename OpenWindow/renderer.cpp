@@ -87,7 +87,7 @@ Vec3f barycentric(Vec3f* pts, Vec3f P)
 
 void triangle(
 	Vec3f* pts,         // Needed
-	Model* model,       // Should be removed
+	ColladaModel* model,       // Should be removed
 	Vec2f* diff_pts,    // Should be removed
 	float* intensities,
 	Vec3f camera_pos)   // Not really sure yet
@@ -186,77 +186,38 @@ Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
 	return Minv * Tr;
 }
 
-void my_triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) {
-	if (t0.y == t1.y && t0.y == t2.y) return; // i dont care about degenerate triangles
-	if (t0.y > t1.y) std::swap(t0, t1);
-	if (t0.y > t2.y) std::swap(t0, t2);
-	if (t1.y > t2.y) std::swap(t1, t2);
-	int total_height = t2.y - t0.y;
-	for (int i = 0; i < total_height; i++) {
-		bool second_half = i > t1.y - t0.y || t1.y == t0.y;
-		int segment_height = second_half ? t2.y - t1.y : t1.y - t0.y;
-		float alpha = (float)i / total_height;
-		float beta = (float)(i - (second_half ? t1.y - t0.y : 0)) / segment_height; // be careful: with above conditions no division by zero here
-		Vec2i A = t0 + (t2 - t0) * alpha;
-		Vec2i B = second_half ? t1 + (t2 - t1) * beta : t0 + (t1 - t0) * beta;
-		if (A.x > B.x) std::swap(A, B);
-		for (int j = A.x; j <= B.x; j++) {
-			image.set(j, t0.y + i, color); // attention, due to int casts t0.y+i != A.y
-		}
-	}
-}
-
 void render()
 {
-	//Model* model = new Model("african_head.obj");
-	//Matrix ViewPort = viewport(screen_width / 8, screen_height / 8, screen_width * 3 / 4, screen_height * 3 / 4);
-	//Matrix Projection = Matrix::identity();
-	//Matrix ModelView = lookat(eye, center, Vec3f(0, 1, 0));
-
-	//Projection[3][2] = -1.f / (eye - center).norm();
-
-	//Matrix z = ViewPort * Projection * ModelView * model->Transform;
-
-	//init_zbuffer();
-	//for (int i = 0; i < model->nfaces(); i++)
-	//{
-	//	std::vector<int> face = model->face(i);
-	//	Vec3f screen_coords[3];
-	//	Vec3f world_coords[3];
-	//	Vec2f diffuse_coords[3];
-	//	float intensities[3];
-
-	//	for (int j = 0; j < 3; j++)
-	//	{
-	//		Vec3f v = model->vert(face[j]);
-	//		Vec4f v4(v);
-	//		Vec3f coord(z * v4);
-
-	//		screen_coords[j] = coord;
-	//		world_coords[j] = v;
-	//		diffuse_coords[j] = model->uv(i, j);
-	//		intensities[j] = model->normal(i, j) * light_dir;
-	//	}
-
-	//	triangle(screen_coords, model, diffuse_coords, intensities, Vec3f(0, 0, 5));
-	//}
-
 	ColladaModel* model = new ColladaModel("african_head.dae");
-	TGAImage image(800, 800, TGAImage::RGB);
-	Vec3f light_dir(0, 0, -1);
-	for (int i = 0; i < model->nfaces(); i++) {
-		std::vector<Vec3i> face = model->face(i);
-		Vec2i screen_coords[3];
-		Vec3f world_coords[3];
-		for (int j = 0; j < 3; j++) {
-			Vec3f v = model->vertex(face[j][0]);
-			screen_coords[j] = Vec2i((v.x + 1.) * 800 / 2., (v.y + 1.) * 800 / 2.);
-			world_coords[j] = v;
-		}
-		my_triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, white);
-	}
+	Matrix ViewPort = viewport(screen_width / 8, screen_height / 8, screen_width * 3 / 4, screen_height * 3 / 4);
+	Matrix Projection = Matrix::identity();
+	Matrix ModelView = lookat(eye, center, Vec3f(0, 1, 0));
 
-	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	image.write_tga_file("output.tga");
-	delete model;
+	Projection[3][2] = -1.f / (eye - center).norm();
+
+	Matrix z = ViewPort * Projection * ModelView * model->Transform;
+
+	init_zbuffer();
+	for (int i = 0; i < model->nfaces(); i++)
+	{
+		std::vector<int> face = model->face(i);
+		Vec3f screen_coords[3];
+		Vec3f world_coords[3];
+		Vec2f diffuse_coords[3];
+		float intensities[3];
+
+		for (int j = 0; j < 3; j++)
+		{
+			Vec3f v = model->vertix(face[j]);
+			Vec4f v4(v);
+			Vec3f coord(z * v4);
+
+			screen_coords[j] = coord;
+			world_coords[j] = v;
+			diffuse_coords[j] = model->uv(i, j);
+			intensities[j] = model->normal(i, j) * light_dir;
+		}
+
+		triangle(screen_coords, model, diffuse_coords, intensities, Vec3f(0, 0, 5));
+	}
 }

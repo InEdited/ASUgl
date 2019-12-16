@@ -6,7 +6,7 @@
 #define PI 3.14159265358979323846
 #define DEG2RAD PI/180
 
-ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normals_(), rootjoint(rootindex,roottransform)
+ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normals_(), rootjoint(rootindex, roottransform)
 {
 	Transform = Matrix::identity();
 	Rotation = Matrix::identity();
@@ -15,11 +15,14 @@ ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normal
 
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(filename);
+
+	load_texture(filename, "_diffuse.tga", diffusemap_);
+	load_texture(filename, "_nm_tangent.tga", normalmap_);
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////faces//////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	face_count = 0;
-	tinyxml2::XMLElement* xml_face = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("triangles");
+	tinyxml2::XMLElement* xml_face = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement()->FirstChildElement()->FirstChildElement("triangles");
 	xml_face->QueryIntAttribute("count", &face_count); //get count
 	std::stringstream str_triangle(xml_face->FirstChildElement("p")->GetText()); //get values as a string
 
@@ -54,7 +57,7 @@ ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normal
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////normal////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
-	normal_count = 0;
+	int normal_count = 0;
 	tinyxml2::XMLElement* xml_normal = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->NextSiblingElement()->FirstChildElement("float_array");
 	xml_normal->QueryIntAttribute("count", &normal_count);
 	std::stringstream str_normal(xml_normal->GetText());
@@ -68,9 +71,9 @@ ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normal
 		normals_.push_back(temp);
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////textcoord/////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
-	texcoord_count = 0;
+	int texcoord_count = 0;
 	tinyxml2::XMLElement* xml_texture = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FirstChildElement("mesh")->FirstChildElement("source")->NextSiblingElement()->NextSiblingElement()->FirstChildElement("float_array");
 	xml_texture->QueryIntAttribute("count", &texcoord_count);
 	std::stringstream str_texcoord(xml_texture->GetText());
@@ -80,11 +83,45 @@ ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normal
 		Vec2f temp;
 		str_texcoord >> temp.x;
 		str_texcoord >> temp.y;
-		textureco_.push_back(temp);
+		texturecos_.push_back(temp);
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	int vertexweights_count = 0;
+	tinyxml2::XMLElement* xml_vertexweights = doc.FirstChildElement("COLLADA")->FirstChildElement("library_controllers")->FirstChildElement()->FirstChildElement()->FirstChildElement("vertex_weights");
+	xml_vertexweights->QueryIntAttribute("count", &vertexweights_count);
+	std::stringstream str_vertexweights(xml_vertexweights->FirstChildElement("vcount")->GetText());
+	std::stringstream str_vertexweights1(xml_vertexweights->FirstChildElement("v")->GetText());
 
-	load_texture(filename, "_diffuse.tga", diffusemap_);
-	load_texture(filename, "_nm_tangent.tga", normalmap_);
+	for (int i = 0; i < vertexweights_count; i++)
+	{
+		int temp;
+		Vec2i temp1;
+		vertexweights_.push_back(std::vector<Vec2i>());
+		str_vertexweights >> temp;
+		
+		for (int j = 0; j < temp; j++)
+		{
+			str_vertexweights1 >> temp1.x;
+			str_vertexweights1 >> temp1.y;
+			vertexweights_[i].push_back(temp1);
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	int weight_count = 0;
+	tinyxml2::XMLElement* xml_weight = doc.FirstChildElement("COLLADA")->FirstChildElement("library_controllers")->FirstChildElement()->FirstChildElement()->FirstChildElement("source")->NextSiblingElement()->NextSiblingElement()->FirstChildElement();
+	xml_weight->QueryIntAttribute("count", &weight_count);
+	std::stringstream str_weight(xml_weight->GetText());
+
+	for (int i = 0; i < weight_count; i++)
+	{
+		float temp;
+		str_weight >> temp;
+		weights_.push_back(temp);
+	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,7 +200,7 @@ Vec3f ColladaModel::normal(Vec2f uvf) {
 }
 
 Vec2f ColladaModel::uv(int iface, int nthvert) {
-	return textureco_[faces_[iface][nthvert][2]];
+	return texturecos_[faces_[iface][nthvert][2]];
 }
 
 float ColladaModel::specular(Vec2f uvf) {
@@ -181,7 +218,7 @@ Joint ColladaModel::getrootjoint()
 	return rootjoint;
 }
 
-void ColladaModel::doanimation(Animator animation)
+void ColladaModel::doanimation(Animation animation)
 {
 	animator.doanimation(animation);
 }

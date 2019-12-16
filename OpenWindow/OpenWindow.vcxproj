@@ -115,6 +115,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="animation.cpp" />
     <ClCompile Include="animator.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="colladamodel.cpp" />
@@ -129,6 +130,7 @@
     <ClCompile Include="util_window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="animation.h" />
     <ClInclude Include="animator.h" />
     <ClInclude Include="colladamodel.h" />
     <ClInclude Include="geometry.h" />

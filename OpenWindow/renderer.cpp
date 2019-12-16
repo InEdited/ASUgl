@@ -3,6 +3,7 @@
 #include "util_window.h"
 #include "camera.h"
 #include "util_renderer.h"
+#include "colladamodel.h"
 
 #define HORIZONTAL_CAMERA_SPEED           0.1
 #define VERTICAL_CAMERA_SPEED             0.1
@@ -25,7 +26,7 @@ Matrix ViewPort = Matrix::identity();
 Matrix ModelView = Matrix::identity();
 Matrix Projection = Matrix::identity();
 
-Model* model = new Model("african_head.obj");
+ColladaModel* model = new ColladaModel("sssssssssssss.dae");
 Camera camera;
 
 Vec3f light_dir = Vec3f(1, 1, 1).normalize();
@@ -58,7 +59,7 @@ struct TextureShader : public IShader {
 
 	virtual Vec4f vertex(int iface, int nthvert) {
 		varying_uv_coords.set_col(nthvert, model->uv(iface, nthvert));
-		Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert));
+		Vec4f gl_Vertex = embed<4>(model->vertix(iface, nthvert));
 		return ViewPort * Projection * ModelView * gl_Vertex;									// transform it to screen coordinates
 	}
 

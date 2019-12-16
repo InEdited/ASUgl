@@ -8,6 +8,7 @@
 #include "tgaimage.h"
 #include "joint.h"
 #include "animator.h"
+#include "animation.h"
 
 #include <cerrno>
 #include <cstdlib>
@@ -23,8 +24,8 @@ class ColladaModel {
 private:
 	int face_count;
 	int vertex_count;
-	int normal_count;
-	int texcoord_count;
+	//int normal_count;
+	//int texcoord_count;
 	int joint_count;
 
 	Joint rootjoint;
@@ -36,7 +37,12 @@ private:
 	std::vector<std::vector<Vec3i> > faces_; //vertex/normal/uv
 	std::vector<Vec3f> vertices_;
 	std::vector<Vec3f> normals_;
-	std::vector<Vec2f> textureco_;
+	std::vector<Vec2f> texturecos_;
+
+
+	std::vector<std::vector<Vec2i>> vertexweights_; //joint/weight
+	std::vector<Vec3i> jointIDs_;
+	std::vector<float> weights_;
 
 	TGAImage diffusemap_;
 	TGAImage normalmap_;
@@ -75,7 +81,7 @@ public:
 	/////////////////////////////
 	Joint getrootjoint();
 
-	void doanimation(Animator animation);
+	void doanimation(Animation animation);
 
 	void updateanimator();
 

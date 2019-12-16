@@ -46,13 +46,13 @@ void HandleMouseMovement() {
 }
 
 bool HandleButtonPressed() {
-	if (GetAsyncKeyState(VK_UP) & 0x8000)
+	if (GetAsyncKeyState(0x57) & 0x8000)
 		camera.move_camera_forward();
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+	if (GetAsyncKeyState(0x53) & 0x8000)
 		camera.move_camera_backward();
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+	if (GetAsyncKeyState(0x44) & 0x8000)
 		camera.move_camera_right();
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+	if (GetAsyncKeyState(0x41) & 0x8000)
 		camera.move_camera_left();
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 		camera.rise();

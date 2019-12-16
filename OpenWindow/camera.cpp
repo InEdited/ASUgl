@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "util_window.h"
 
 Camera::Camera()
 {
@@ -107,6 +108,9 @@ Matrix Camera::GetModelViewMatrix() {
 		Minv[2][i] = z[i];
 		Tr[i][3] = -center[i];
 	}
+//	Minv[3][0] = (right * position);
+//	Minv[3][1] = (up * position);
+//	Minv[3][2] = (z * position);
 	return Minv * Tr;
 }
 
@@ -115,7 +119,13 @@ Matrix Camera::GetProjectionMatrix() {
 	Projection[0][0] = 1 / tan(fov * DEG2RAD);
 	Projection[1][1] = 1 / tan(fov * DEG2RAD);
 	Projection[2][2] = (far_plane + near_plane) / (far_plane - near_plane);
-	Projection[2][3] = (-2 * far_plane * near_plane) / (far_plane - near_plane);
+	Projection[2][3] = (2 * far_plane * near_plane) / (far_plane - near_plane);
+	//Projection[2][2] = -(far_plane) / (far_plane - near_plane);
+	//Projection[2][3] = -1;
+	//Projection[3][2] = -(far_plane * near_plane) / (far_plane - near_plane);
+	//Projection[2][2] = -2 / (far_plane - near_plane);
+	//Projection[2][3] = (far_plane + near_plane) / (far_plane - near_plane);
 	Projection[3][2] = -1;
+	Projection[3][3] = 1;
 	return Projection;
 }

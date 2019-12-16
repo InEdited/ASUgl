@@ -8,13 +8,13 @@
 #define VERTICAL_CAMERA_SPEED             0.1
 #define VERTICAL_CAMERA_CLAMP_UP           90
 #define VERTICAL_CAMERA_CLAMP_DOWN        -90
-#define NEAR_CLIP_PLANE                     0 
-#define FAR_CLIP_PLANE                     10
+#define NEAR_CLIP_PLANE                    0.3f 
+#define FAR_CLIP_PLANE                     10.0f
 #define FOV                                30
 #define CAMERA_MOVEMENT_SPEED           0.05f
 #define DEFAULT_CAMERA_POS     Vec3f(0, 0, 5)
 #define DEFAULT_CAMERA_ROT     Vec3f(0, 0, 0)
-#define LIGHT_INTENSITY                   2.f
+#define LIGHT_INTENSITY                   1.5
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);

@@ -3,6 +3,10 @@
 #include "util_window.h"
 #include "camera.h"
 #include "util_renderer.h"
+#include "CL/cl.h"
+#include "kernels.h"
+
+#pragma comment (lib, "x86_64/opencl.lib")
 
 #define HORIZONTAL_CAMERA_SPEED           0.1
 #define VERTICAL_CAMERA_SPEED             0.1
@@ -55,11 +59,14 @@ struct TextureShader : public IShader {
 	mat<2, 3, float> varying_uv_coords;
 	Matrix uniform_mit;
 	Matrix uniform_m;
+	Matrix z;
 
 	virtual Vec4f vertex(int iface, int nthvert) {
-		varying_uv_coords.set_col(nthvert, model->uv(iface, nthvert));
-		Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert));
-		return ViewPort * Projection * ModelView * gl_Vertex;									// transform it to screen coordinates
+		//varying_uv_coords.set_col(nthvert, model->vert(iface, nthvert));
+		Vec4f gl_Vertex = embed<4>(model->verts_[model->faces_[iface][nthvert][0]]);
+		//return ViewPort * Projection * ModelView * gl_Vertex;									// transform it to screen coordinates
+		return z * gl_Vertex;
+		//return Vec4f(0,0,0,0);
 	}
 
 	virtual bool fragment(Vec3f bar, TGAColor &color) {
@@ -72,7 +79,7 @@ struct TextureShader : public IShader {
 		TGAColor c = model->diffuse(uv);
 		color = c;
 		for (int i = 0; i < 3; i++)
-			color[i] = std::fmin(1 + c[i] * (diff_intensity + 0.8 * spec_intensity), 255) * LIGHT_INTENSITY;
+			color[i] = std::fmin(2 + c[i] * (( 1 * diff_intensity + 1 * spec_intensity)), 255) * LIGHT_INTENSITY;
 		return false;                         
 	}
 };
@@ -90,6 +97,10 @@ void render()
 		ModelView = camera.GetModelViewMatrix();
 	}
 	
+	{
+		model->rotate(Vec3f(0, 0, 90));
+		model->ApplyTransform();
+	}
 
 	//Matrix z = ViewPort * Projection * ModelView * model->Transform;
 
@@ -98,19 +109,36 @@ void render()
 	shader.uniform_m =   (Projection);
 	shader.uniform_mit = (Projection).invert_transpose();
 
+	//Matrix intermediate_z;
+	//mat4_mul((float*) &ViewPort, (float*) &Projection, (float*) &intermediate_z);
+	//mat4_mul((float*)&intermediate_z, (float*)&ModelView, (float*) &intermediate_z);
+	//mat4_mul((float*)&intermediate_z, (float*)&model->Transform, (float*) &intermediate_z);
+	//shader.z = intermediate_z;
+
+
+	//std::vector<Vec3f> new_verts = model->verts_;
+	Vec3f* new_verts = (Vec3f*)malloc(3 * sizeof(float) * model->nverts());
+	vertex_shader(&ViewPort, &Projection, &ModelView, &model->Transform, (float*)&model->verts_, model->nverts(), (float*)new_verts);
+
+
 	#pragma omp parallel for
 	for (int i = 0; i < model->nfaces(); i++) {
 		Vec4f screen_coords[3];
 		bool out = true;
 		#pragma omp parallel for
 		for (int j = 0; j < 3; j++) {
-			screen_coords[j] = shader.vertex(i, j);
+			//screen_coords[j] = model->vert(i, j);
+			//screen_coords[j] = shader.vertex(i, j);
+			screen_coords[j] = new_verts[model->faces_[i][j][0]];
 			Vec3f screen3(screen_coords[j]);
 
+			shader.varying_uv_coords.set_col(j, model->uv(i, j));
 			if (screen3.x > 0 && screen3.x < screen_width && screen3.y > 0 && screen3.y < screen_height) out = false;
 		}
 		if(!out)
 			triangle(screen_coords, shader);
 	}
+
+	free(new_verts);
 }
 

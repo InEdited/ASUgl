@@ -2,6 +2,7 @@
 #include "util_window.h"
 #include "renderer.h"
 #include "ctime"
+#include "kernels.h"
 
 const int screen_width = 1000;
 const int screen_height = 1000;
@@ -23,7 +24,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    ShowWindow(hwnd, nCmdShow);
 
    init_camera();
+   init_kernels();
 
+
+	//camera.ApplyChanges();
+	//render();
+	//Update();
 
    SetTimer(hwnd, NULL, 1000 / TARGET_FRAMERATE, (TIMERPROC)FixedUpdate);
 
@@ -83,6 +89,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
+		destroy_kernels();
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);

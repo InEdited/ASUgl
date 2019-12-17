@@ -10,9 +10,11 @@ private:
 
 public:
 	int index;
+	char* name;
 	std::vector<Joint> children;
 
-	Joint(int index,Matrix transform);
+	Joint() = default;
+	Joint(int index,Matrix transform,char* name);
 	~Joint();
 
 	void addChild(Joint child);

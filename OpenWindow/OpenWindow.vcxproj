@@ -121,8 +121,11 @@
     <ClCompile Include="colladamodel.cpp" />
     <ClCompile Include="geometry.cpp" />
     <ClCompile Include="joint.cpp" />
+    <ClCompile Include="jointtransform.cpp" />
+    <ClCompile Include="keyframe.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="quaternion.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="tgaimage.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
@@ -136,7 +139,10 @@
     <ClInclude Include="geometry.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="joint.h" />
+    <ClInclude Include="jointtransform.h" />
+    <ClInclude Include="keyframe.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="quaternion.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="tgaimage.h" />
     <ClInclude Include="tinyxml2.h" />

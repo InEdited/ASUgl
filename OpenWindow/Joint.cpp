@@ -1,8 +1,9 @@
 #include "Joint.h"
 
-Joint::Joint(int index, Matrix transform) {
+Joint::Joint(int index, Matrix transform, char* name) {
 	Joint::index = index;
 	_transform = transform;
+	Joint::name = name;
 }
 
 Joint::~Joint() {

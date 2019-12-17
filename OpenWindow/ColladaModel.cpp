@@ -6,7 +6,7 @@
 #define PI 3.14159265358979323846
 #define DEG2RAD PI/180
 
-ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normals_(), rootjoint(rootindex, roottransform)
+ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normals_(), rootjoint()
 {
 	Transform = Matrix::identity();
 	Rotation = Matrix::identity();
@@ -125,7 +125,57 @@ ColladaModel::ColladaModel(const char* filename) : faces_(), vertices_(), normal
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	/*joint_count = 0;
+	tinyxml2::XMLElement* xml_joint = doc.FirstChildElement("COLLADA")->FirstChildElement("library_controllers")->FirstChildElement()->FirstChildElement()->FirstChildElement("source")->FirstChildElement();
+	xml_joint->QueryIntAttribute("count", &joint_count);
+	std::stringstream str_joint(xml_joint->GetText());
+	 */
+	/*for (int i = 0; i < joint_count; i++)
+	{
+		Vec2f temp;
+		str_texcoord >> temp.x;
+		str_texcoord >> temp.y;
+		texturecos_.push_back(temp);
+	}*/
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//tinyxml2::XMLElement* xml_hierachy = doc.FirstChildElement("COLLADA")->FirstChildElement("library_visual_scenes")->FirstChildElement("visual_scene")->FirstChildElement("node")->FirstChildElement("node");
+	//std::stringstream str_hierachy(xml_hierachy->GetText());
+
+	//ColladaModel::rootjoint = buildjoint(xml_hierachy);
+	joint_count = 0;
+	tinyxml2::XMLElement* xml_joint = doc.FirstChildElement("COLLADA")->FirstChildElement("library_controllers")->FirstChildElement("controller")->FirstChildElement("skin")->FirstChildElement("source")->FirstChildElement("Name_array");
+	xml_joint->QueryIntAttribute("count", &joint_count);
+	std::stringstream str_joint(xml_joint->GetText());
+
+	for (int i = 0; i < vertex_count / 3; i++)
+	{
+		std::string temp;
+		str_vertex >> temp;
+
+		jointIDs_.push_back(temp);
+	}
+
 }
+
+//Joint buildjoint(tinyxml2::XMLElement* xml_hierachy)
+//{
+//	const char* name;
+//	xml_hierachy->QueryStringAttribute("name", &name);
+//	std::stringstream str_transform(xml_hierachy->FirstChildElement("matrix")->GetText());
+//	Matrix transform;
+//	
+//	if (xml_hierachy->FirstChildElement("node") != NULL)
+//	{
+//		xml_hierachy = xml_hierachy->FirstChildElement("node");
+//		do
+//		{
+////			buildjoint
+//		} while (xml_hierachy->NextSiblingElement() != NULL);
+//	}
+//}
+
 ColladaModel::~ColladaModel() {
 }
 
@@ -220,12 +270,12 @@ Joint ColladaModel::getrootjoint()
 
 void ColladaModel::doanimation(Animation animation)
 {
-	animator.doanimation(animation);
+	//animator.doanimation(animation);
 }
 
 void ColladaModel::updateanimator()
 {
-	animator.update();
+	//animator.update();
 }
 
 std::vector<Matrix> ColladaModel::getjointtransforms()

@@ -24,24 +24,40 @@ class ColladaModel {
 private:
 	int face_count;
 	int vertex_count;
-	//int normal_count;
-	//int texcoord_count;
 	int joint_count;
 
 	Joint rootjoint;
 	int rootindex=0;
-	Matrix roottransform;
+	char* rootname;
+	Matrix root_transform;
 
-	Animator animator;
+	//Animator animator;
 
 	std::vector<std::vector<Vec3i> > faces_; //vertex/normal/uv
 	std::vector<Vec3f> vertices_;
 	std::vector<Vec3f> normals_;
 	std::vector<Vec2f> texturecos_;
 
+	// #include <map>
+	// map<const char*, int> joint_names;
+	// joints.add(pair<const char*, int>("TORSO", 0));
 
+	// {TORSO, 0}
+	// {LEG,   1}
+	// {HAND,  2}
+
+	//joint_names.get("TORSO");
+
+	// 1. Get jointnames and map them to ids
+	// 2. get each joint and fill in the Joint class
+	// 3. get inversebindtransforms
+
+	// Vector -> Vectors -> (joint , weight)
 	std::vector<std::vector<Vec2i>> vertexweights_; //joint/weight
-	std::vector<Vec3i> jointIDs_;
+	std::vector<std::string> jointIDs_;
+	// { TORSO , LEG, TEZ}
+	// { 0, 1, 2}
+	// jointIDs[0]
 	std::vector<float> weights_;
 
 	TGAImage diffusemap_;
@@ -50,6 +66,7 @@ private:
 
 	void load_texture(std::string filename, const char* suffix, TGAImage& img);
 public:
+	ColladaModel() = default;
 	ColladaModel(const char* filename);
 	~ColladaModel();
 
@@ -65,6 +82,7 @@ public:
 	Vec2f uv(int iface, int nthvert);
 
 	Matrix Transform;
+
 	Matrix Rotation;
 	Matrix Scale;
 	Matrix Translation;

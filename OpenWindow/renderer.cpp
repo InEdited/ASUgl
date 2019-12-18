@@ -9,6 +9,7 @@
 #include "util_window.h"
 #include <ctime>
 #include "ColladaModel.h"
+#include "COLLADA.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -188,6 +189,7 @@ Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
 
 void render()
 {
+	COLLADA C("sssssssssssss.dae");
 	ColladaModel* model = new ColladaModel("african_head.dae");
 	Matrix ViewPort = viewport(screen_width / 8, screen_height / 8, screen_width * 3 / 4, screen_height * 3 / 4);
 	Matrix Projection = Matrix::identity();

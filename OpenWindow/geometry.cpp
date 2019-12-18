@@ -5,3 +5,7 @@ template <> template <> vec<3,float>::vec(const vec<3,int> &v)   : x(v.x),y(v.y)
 template <> template <> vec<2,int>  ::vec(const vec<2,float> &v) : x(int(v.x+.5f)),y(int(v.y+.5f)) {}
 template <> template <> vec<2,float>::vec(const vec<2,int> &v)   : x(v.x),y(v.y) {}
 
+Geometry::Geometry(tinyxml2::XMLElement* xml)
+{
+	m_Mesh = Mesh(xml->FirstChildElement("mesh"));
+}

@@ -115,8 +115,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="COLLADA.cpp" />
     <ClCompile Include="ColladaModel.cpp" />
+    <ClCompile Include="data.cpp" />
     <ClCompile Include="geometry.cpp" />
+    <ClCompile Include="GeometryLibrary.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="renderer.cpp" />
@@ -125,8 +128,11 @@
     <ClCompile Include="util_window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="COLLADA.h" />
     <ClInclude Include="ColladaModel.h" />
+    <ClInclude Include="data.h" />
     <ClInclude Include="geometry.h" />
+    <ClInclude Include="GeometryLibrary.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="tgaimage.h" />

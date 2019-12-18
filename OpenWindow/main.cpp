@@ -21,6 +21,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
    hwnd = create_window(hInstance);
    ShowCursor(false);
+
+    AllocConsole();
+	freopen("CONIN$", "r",stdin);
+	freopen("CONOUT$", "w",stdout);
+	freopen("CONOUT$", "w",stderr);
+
    ShowWindow(hwnd, nCmdShow);
 
    init_camera();

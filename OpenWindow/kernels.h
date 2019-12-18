@@ -39,7 +39,7 @@ extern const char* vertex_shader_kernel_source;
 
 void init_kernels();
 void mat4_mul(float* A, float* B, float* C);
-void vertex_shader(Matrix* ViewPort, Matrix* Projection, Matrix* ModelView, Matrix* ModelTransform, float* vertices, int vertex_count, float* new_vertices);
+void vertex_shader(float* z, float* vertices, int vertex_count, float* new_vertices);
 void destroy_kernels();
 
 

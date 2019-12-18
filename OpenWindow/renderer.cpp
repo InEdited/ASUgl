@@ -5,6 +5,7 @@
 #include "util_renderer.h"
 #include "CL/cl.h"
 #include "kernels.h"
+#include <ctime>
 
 #pragma comment (lib, "x86_64/opencl.lib")
 
@@ -33,6 +34,8 @@ Model* model = new Model("african_head.obj");
 Camera camera;
 
 Vec3f light_dir = Vec3f(1, 1, 1).normalize();
+
+float* new_verts = (float*)malloc(4 * sizeof(float) * model->nverts());
 
 void init_camera() {
 	camera.SetPosition(DEFAULT_CAMERA_POS);
@@ -98,28 +101,20 @@ void render()
 	}
 	
 	{
-		model->rotate(Vec3f(0, 0, 90));
-		model->ApplyTransform();
+		//model->rotate(Vec3f(0, 0, 90));
+		//model->ApplyTransform();
 	}
-
-	//Matrix z = ViewPort * Projection * ModelView * model->Transform;
 
 	clear_zbuffer();
 	TextureShader shader;
 	shader.uniform_m =   (Projection);
 	shader.uniform_mit = (Projection).invert_transpose();
 
-	//Matrix intermediate_z;
-	//mat4_mul((float*) &ViewPort, (float*) &Projection, (float*) &intermediate_z);
-	//mat4_mul((float*)&intermediate_z, (float*)&ModelView, (float*) &intermediate_z);
-	//mat4_mul((float*)&intermediate_z, (float*)&model->Transform, (float*) &intermediate_z);
-	//shader.z = intermediate_z;
+	Matrix z = ViewPort * Projection * ModelView * model->Transform;
 
 
-	//std::vector<Vec3f> new_verts = model->verts_;
-	Vec3f* new_verts = (Vec3f*)malloc(3 * sizeof(float) * model->nverts());
-	vertex_shader(&ViewPort, &Projection, &ModelView, &model->Transform, (float*)&model->verts_, model->nverts(), (float*)new_verts);
-
+	// Vertex Shader: Should be called per model
+	vertex_shader((float*)&z, *(float**)((Vec3f*) &model->verts_), model->nverts(), new_verts);
 
 	#pragma omp parallel for
 	for (int i = 0; i < model->nfaces(); i++) {
@@ -127,9 +122,7 @@ void render()
 		bool out = true;
 		#pragma omp parallel for
 		for (int j = 0; j < 3; j++) {
-			//screen_coords[j] = model->vert(i, j);
-			//screen_coords[j] = shader.vertex(i, j);
-			screen_coords[j] = new_verts[model->faces_[i][j][0]];
+			screen_coords[j] = ((Vec4f*)new_verts)[model->faces_[i][j][0]];
 			Vec3f screen3(screen_coords[j]);
 
 			shader.varying_uv_coords.set_col(j, model->uv(i, j));
@@ -138,7 +131,5 @@ void render()
 		if(!out)
 			triangle(screen_coords, shader);
 	}
-
-	free(new_verts);
 }
 

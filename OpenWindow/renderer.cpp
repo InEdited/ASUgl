@@ -13,10 +13,10 @@
 #define VERTICAL_CAMERA_SPEED             0.1
 #define VERTICAL_CAMERA_CLAMP_UP           90
 #define VERTICAL_CAMERA_CLAMP_DOWN        -90
-#define NEAR_CLIP_PLANE                    0.3f 
-#define FAR_CLIP_PLANE                     10.0f
-#define FOV                                30
-#define CAMERA_MOVEMENT_SPEED           0.05f
+#define NEAR_CLIP_PLANE                    1.f 
+#define FAR_CLIP_PLANE                     200.0f
+#define FOV                                50
+#define CAMERA_MOVEMENT_SPEED              .1f
 #define DEFAULT_CAMERA_POS     Vec3f(0, 0, 5)
 #define DEFAULT_CAMERA_ROT     Vec3f(0, 0, 0)
 #define LIGHT_INTENSITY                   1.5
@@ -36,6 +36,9 @@ Camera camera;
 Vec3f light_dir = Vec3f(1, 1, 1).normalize();
 
 float* new_verts = (float*)malloc(4 * sizeof(float) * model->nverts());
+int* faces = (int*)malloc(3 * 3 * sizeof(int) * model->nfaces());
+
+bool init_flag = false;
 
 void init_camera() {
 	camera.SetPosition(DEFAULT_CAMERA_POS);
@@ -82,7 +85,7 @@ struct TextureShader : public IShader {
 		TGAColor c = model->diffuse(uv);
 		color = c;
 		for (int i = 0; i < 3; i++)
-			color[i] = std::fmin(2 + c[i] * (( 1 * diff_intensity + 1 * spec_intensity)), 255) * LIGHT_INTENSITY;
+			color[i] = std::fmin(3 + c[i] * ((1 * diff_intensity + 0.1 * spec_intensity)), 255);// *LIGHT_INTENSITY;
 		return false;                         
 	}
 };
@@ -90,12 +93,17 @@ struct TextureShader : public IShader {
 
 void render()
 {
-	{
+	if (!init_flag) {
 		//light_dir = camera.GetForward().normalize() * -1;
+		viewport(0, 0, screen_width, screen_height, FAR_CLIP_PLANE, NEAR_CLIP_PLANE);
+		for (int i = 0; i < model->nfaces(); i++)
+			for (int j = 0; j < 3; j++)
+				for (int k = 0; k < 3; k++)
+					faces[i * 9 + j * 3 + k] = model->faces_[i][j][k];
+		init_flag = true;
 	}
 
 	{
-		viewport(0, 0, screen_width, screen_height, FAR_CLIP_PLANE, NEAR_CLIP_PLANE);
 		Projection = camera.GetProjectionMatrix();
 		ModelView = camera.GetModelViewMatrix();
 	}
@@ -105,31 +113,79 @@ void render()
 		//model->ApplyTransform();
 	}
 
-	clear_zbuffer();
-	TextureShader shader;
-	shader.uniform_m =   (Projection);
-	shader.uniform_mit = (Projection).invert_transpose();
+//	float* normal_test = *(float**)((Vec3f*)&model->norms_);
+//
+//	Vec3f smth = Vec3f(
+//		normal_test[3 * faces[0 * 9 + 0 * 3 + 2] + 0],
+//		normal_test[3 * faces[0 * 9 + 0 * 3 + 2] + 1],
+//		normal_test[3 * faces[0 * 9 + 0 * 3 + 2] + 2]
+//	).normalize();
+//	printf("Real: %f, %f, %f\n", model->normal(0, 0)[0], model->normal(0, 0)[1], model->normal(0, 0)[2]);
+//	printf("Please: %f, %f, %f\n", smth[0], smth[1], smth[2]);
+
+	//TextureShader shader;
+	//shader.uniform_m =   (Projection);
+	//shader.uniform_mit = (Projection).invert_transpose();
 
 	Matrix z = ViewPort * Projection * ModelView * model->Transform;
 
+	Matrix uniform_m =   (Projection);
+	Matrix uniform_mit = (Projection).invert_transpose();
 
 	// Vertex Shader: Should be called per model
 	vertex_shader((float*)&z, *(float**)((Vec3f*) &model->verts_), model->nverts(), new_verts);
 
-	#pragma omp parallel for
-	for (int i = 0; i < model->nfaces(); i++) {
-		Vec4f screen_coords[3];
-		bool out = true;
-		#pragma omp parallel for
-		for (int j = 0; j < 3; j++) {
-			screen_coords[j] = ((Vec4f*)new_verts)[model->faces_[i][j][0]];
-			Vec3f screen3(screen_coords[j]);
+	// Things needed in the GPU fragment shader
+	// [x] model->faces_
+	// [x] model->nfaces()
+	// [x] new_verts
+	// [x] model->nverts()
+	// [x] screen_width
+	// [x] screen_height
+	// [x] z_buffer
+	// [x] uniform_m
+	// [x] uniform_mit
+	// [x] light direction
+	// [ ] diffuse map
+	// [ ] normal map
+	// [ ] specular map
+	// [ ] pixel_data
 
-			shader.varying_uv_coords.set_col(j, model->uv(i, j));
-			if (screen3.x > 0 && screen3.x < screen_width && screen3.y > 0 && screen3.y < screen_height) out = false;
-		}
-		if(!out)
-			triangle(screen_coords, shader);
-	}
+	int map_size[] = {model->diffusemap_.get_width(), model->diffusemap_.get_height()};
+
+	fragment_shader(
+		faces,
+		model->nfaces(),
+		*(float**)((Vec2f*)&model->uv_),
+		sizeof(float) * model->uv_.size() * 2,
+		(float*) &uniform_m,
+		(float*) &uniform_mit,
+		(float*) &light_dir,
+		model->diffusemap_.data,
+		*(float**)((Vec3f*)&model->norms_),
+		sizeof(float) * model->norms_.size() * 3,
+		model->specularmap_.data,
+		map_size
+	);
+
+	// Here starts the CPU fragment shader
+	//printf("Here starts the loop\n");
+	//#pragma omp parallel for
+	//for (int i = 0; i < model->nfaces(); i++) {
+	//	Vec4f screen_coords[3];
+	//	bool out = true;
+	//	#pragma omp parallel for
+	//	for (int j = 0; j < 3; j++) {
+	//		screen_coords[j] = ((Vec4f*)new_verts)[model->faces_[i][j][0]];
+	//		Vec3f screen3(screen_coords[j]);
+
+	//		shader.varying_uv_coords.set_col(j, model->uv(i, j));
+	//		if (screen3.x > 0 && screen3.x < screen_width && screen3.y > 0 && screen3.y < screen_height) out = false;
+	//	}
+	//	if(!out)
+	//		triangle(screen_coords, shader);
+	//}
+
+	//printf("that's it\n");
 }
 

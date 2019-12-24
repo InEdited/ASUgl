@@ -7,11 +7,11 @@
 
 class Model {
 private:
+    void load_texture(std::string filename, const char *suffix, TGAImage &img);
+public:
     TGAImage diffusemap_;
     TGAImage normalmap_;
     TGAImage specularmap_;
-    void load_texture(std::string filename, const char *suffix, TGAImage &img);
-public:
     std::vector<Vec3f> verts_;
     std::vector<std::vector<Vec3i> > faces_; // attention, this Vec3i means vertex/uv/normal
     std::vector<Vec3f> norms_;

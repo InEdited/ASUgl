@@ -101,31 +101,24 @@ Matrix Camera::GetModelViewMatrix() {
 	Vec3f center = position + forward;
 	Vec3f z = forward * -1;
 	Matrix Minv = Matrix::identity();
-	Matrix Tr = Matrix::identity();
 	for (int i = 0; i < 3; i++) {
 		Minv[0][i] = right[i];
 		Minv[1][i] = up[i];
 		Minv[2][i] = z[i];
-		Tr[i][3] = -center[i];
 	}
-//	Minv[3][0] = (right * position);
-//	Minv[3][1] = (up * position);
-//	Minv[3][2] = (z * position);
-	return Minv * Tr;
+	Minv[0][3] = -(right * position);
+	Minv[1][3] = -(up * position);
+	Minv[2][3] = -(z * position);
+	return Minv;
 }
 
 Matrix Camera::GetProjectionMatrix() {
 	Matrix Projection = Matrix::identity();
-	Projection[0][0] = 1 / tan(fov * DEG2RAD);
-	Projection[1][1] = 1 / tan(fov * DEG2RAD);
+	Projection[0][0] = 1 / tan(fov * DEG2RAD / 2);
+	Projection[1][1] = 1 / tan(fov * DEG2RAD / 2);
 	Projection[2][2] = (far_plane + near_plane) / (far_plane - near_plane);
 	Projection[2][3] = (2 * far_plane * near_plane) / (far_plane - near_plane);
-	//Projection[2][2] = -(far_plane) / (far_plane - near_plane);
-	//Projection[2][3] = -1;
-	//Projection[3][2] = -(far_plane * near_plane) / (far_plane - near_plane);
-	//Projection[2][2] = -2 / (far_plane - near_plane);
-	//Projection[2][3] = (far_plane + near_plane) / (far_plane - near_plane);
 	Projection[3][2] = -1;
-	Projection[3][3] = 1;
+	Projection[3][3] = 0;
 	return Projection;
 }

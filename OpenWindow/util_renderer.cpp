@@ -1,5 +1,6 @@
 #include "util_renderer.h"
 #include "util_window.h"
+#include "kernels.h"
 
 IShader::~IShader() {}
 
@@ -16,7 +17,7 @@ void viewport(int x, int y, int w, int h, int far_plane, int near_plane) {
 }
 
 int color_to_int(TGAColor col) {
-	return (col[2] << 16) | (col[1] << 8) | col[0];
+	return (col[0] << 24) | (col[1] << 16) | (col[2] << 8) | col[3];
 }
 
 Vec3f barycentric(Vec3f* pts, Vec3f P)
@@ -52,22 +53,38 @@ void triangle( Vec4f* pts, IShader &shader)
 			bounding_box_max[j] = std::fmin(clamp[j], std::fmax(bounding_box_max[j], (int)pts3[i][j]));
 		}
 
+	//printf("%f, %f, %f\n", pts3[0][0], pts3[0][1], pts3[0][2]);
+	//float* points_test = (float*)&pts3;
+
+	//printf("%f, %f, %f\n", points_test[0], points_test[1], points_test[2]);
+	//printf("%d, %d\n", bounding_box_max[0], bounding_box_max[1]);
+
+	//fragment_shader_pixelwise(
+	//	*(float**)((Vec3f*)&pts3),
+	//	*(int**)((Vec2i*)&bounding_box_min),
+	//	*(int**)((Vec2i*)&bounding_box_max));
+
+	//fragment_shader_pixelwise(
+	//	(float*)(&pts3),
+	//	(int*)(&bounding_box_min),
+	//	(int*)(&bounding_box_max));
 
 	Vec3i P;
 	#pragma omp parallel for
 	for (P.x = bounding_box_min.x; P.x <= bounding_box_max.x; P.x++) {
 		for (P.y = bounding_box_min.y; P.y <= bounding_box_max.y; P.y++) {
-			Vec3f bc_coord = barycentric(pts3, P);
-			float frag_depth = 0;
-			for (int i = 0; i < 3; i++)
-				frag_depth += pts3[i][2] * bc_coord[i];
-			if (bc_coord.x < 0 || bc_coord.y < 0 || bc_coord.z < 0 || z_buffer[ P.x + P.y * screen_width ]>frag_depth) continue;
-			TGAColor color;
-			bool discard = shader.fragment(bc_coord, color);
-			if (!discard) {
-				z_buffer[P.x + P.y * screen_width] = frag_depth;
-				set_pixel(P.x, P.y, color_to_int(color));
-			}
+			//Vec3f bc_coord = barycentric(pts3, P);
+			//float frag_depth = 0;
+			//for (int i = 0; i < 3; i++)
+			//	frag_depth += pts3[i][2] * bc_coord[i];
+			//if (bc_coord.x < 0 || bc_coord.y < 0 || bc_coord.z < 0 || z_buffer[ P.x + P.y * screen_width ]>frag_depth) continue;
+			//TGAColor color;
+			//bool discard = shader.fragment(bc_coord, color);
+			//if (!discard) {
+			//	z_buffer[P.x + P.y * screen_width] = frag_depth;
+			//	set_pixel(P.x, P.y, color_to_int(color));
+			    set_pixel(P.x, P.y, 0x00ff00);
+			//}
 		}
 	}
 }

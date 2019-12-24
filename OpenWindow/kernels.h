@@ -26,20 +26,29 @@ extern cl_command_queue commands;
 
 extern int err;
 
-
-#define DIM 2
-
-extern size_t mat_mul_global[DIM];
-extern size_t mat_mul_local[DIM];
-
 extern const char* matrix_mul_kernel_source;
 // End of: Matrix Multiplication Variables
 
 extern const char* vertex_shader_kernel_source;
+extern const char* fragment_shader_kernel_source;
 
 void init_kernels();
-void mat4_mul(float* A, float* B, float* C);
 void vertex_shader(float* z, float* vertices, int vertex_count, float* new_vertices);
+void fragment_shader(
+		int* faces,
+		int nfaces,
+		float* uv,
+		size_t uv_size,
+		float* uniform_m,
+		float* uniform_mit,
+		float* light_dir,
+		unsigned char* diffuse_map,
+		float* norms,
+		size_t norms_size,
+		unsigned char* spec_map,
+		int* map_size
+);
+
 void destroy_kernels();
 
 

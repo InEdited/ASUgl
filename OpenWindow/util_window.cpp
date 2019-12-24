@@ -95,9 +95,9 @@ void destroy_window() {
 void set_pixel(unsigned int x, unsigned int y, unsigned int color) {
 	unsigned long pixel_index = y * bytes_per_row + x * 3;
 
-	pixel_data[pixel_index + 0] = (char)(color >>  0);
+	pixel_data[pixel_index + 2] = (char)(color >>  0);
 	pixel_data[pixel_index + 1] = (char)(color >>  8);
-	pixel_data[pixel_index + 2] = (char)(color >> 16);
+	pixel_data[pixel_index + 0] = (char)(color >> 16);
 
 	if (!screen_changed)
 		screen_changed = true;

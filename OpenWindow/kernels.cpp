@@ -107,7 +107,7 @@ void vertex_shader(float* z, float* vertices, int vertex_count, float* new_verti
 	{
 		mat_z            = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(float) * MATRIX_SIZE     , NULL, &err);
 		vertices_mem     = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(float) * vertex_count * 3, NULL, &err);
-		new_vertices_mem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * vertex_count * 4, NULL, &err);
+		new_vertices_mem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float4) * vertex_count, NULL, &err);
 
 		err = clSetKernelArg(vertex_shader_kernel, 0, sizeof(cl_mem), &mat_z);
 		err = clSetKernelArg(vertex_shader_kernel, 1, sizeof(cl_mem), &vertices_mem);
@@ -134,7 +134,7 @@ void clear(cl_mem* buffer, size_t size, const int pattern) {
 }
 
 void fragment_shader(
-	int* faces,
+	cl_int3* faces,
 	int nfaces,
 	float* uv,
 	size_t uv_size,
@@ -149,7 +149,7 @@ void fragment_shader(
 ) {
 	if (!fragment_shader_buffers_initialized) {
 
-		faces_buffer       = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(int) * 3 * 3 * nfaces                , NULL, &err);
+		faces_buffer       = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(cl_int3) * 3 * nfaces                , NULL, &err);
 		pixel_data_buffer  = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int) * screen_height * screen_width  , NULL, &err);
 		screen_width_mem   = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(int)                                 , NULL, &err);
 		z_buffer_mem       = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(float) * screen_height * screen_width, NULL, &err);
@@ -174,7 +174,7 @@ void fragment_shader(
 		err = clSetKernelArg(fragment_shader_kernel, 10, sizeof(cl_mem), &diffuse_map_buffer);
 
 		err = clEnqueueWriteBuffer(commands, screen_width_mem  , CL_FALSE, 0, sizeof(int)                             , &screen_width , 0, NULL, NULL);
-		err = clEnqueueWriteBuffer(commands, faces_buffer      , CL_FALSE, 0, sizeof(int) * 3 * 3 * nfaces            , faces         , 0, NULL, NULL);
+		err = clEnqueueWriteBuffer(commands, faces_buffer      , CL_FALSE, 0, sizeof(cl_int3) * 3 * nfaces            , faces         , 0, NULL, NULL);
 		err = clEnqueueWriteBuffer(commands, nfaces_mem        , CL_FALSE, 0, sizeof(int)                             , &nfaces       , 0, NULL, NULL);
 		err = clEnqueueWriteBuffer(commands, uv_buffer         , CL_FALSE, 0, uv_size                                 , uv            , 0, NULL, NULL);
 		err = clEnqueueWriteBuffer(commands, map_size_buffer   , CL_FALSE, 0, sizeof(int) * 2                         , map_size      , 0, NULL, NULL);
@@ -190,7 +190,8 @@ void fragment_shader(
 	clear(&z_buffer_mem, sizeof(float) * screen_width * screen_height, 0);
 
 
-	size_t fragment_shader_global[] = { nfaces };
+	size_t fragment_shader_global[] = { nfaces * 256 };
+	size_t framgent_shader_local[] = { 256 };
 
 	err = clEnqueueNDRangeKernel(commands, fragment_shader_kernel, 1, NULL, fragment_shader_global, NULL, 0, NULL, NULL);
 

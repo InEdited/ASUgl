@@ -75,14 +75,14 @@ bool HandleButtonPressed() {
 
 void CALLBACK FixedUpdate(HWND hwnd, UINT message, UINT uInt, DWORD dWord)
 {
-	TIME += 0.167;
+	TIME += 0.03333333;
 	HandleButtonPressed();
 	camera.ApplyChanges();
 	clock_t start = clock();
 	render();
+	Update();
 	clock_t end = clock();
 	printf("FPS: %f\n", 1/((float)(end-start)/CLOCKS_PER_SEC));
-	Update();
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)

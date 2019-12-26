@@ -35,7 +35,7 @@ extern const char* fragment_shader_kernel_source;
 void init_kernels();
 void vertex_shader(float* z, float* vertices, int vertex_count, float* new_vertices);
 void fragment_shader(
-		int* faces,
+		cl_int3* faces,
 		int nfaces,
 		float* uv,
 		size_t uv_size,

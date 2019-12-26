@@ -14,9 +14,9 @@
 #define VERTICAL_CAMERA_CLAMP_UP           90
 #define VERTICAL_CAMERA_CLAMP_DOWN        -90
 #define NEAR_CLIP_PLANE                    1.f 
-#define FAR_CLIP_PLANE                     200.0f
+#define FAR_CLIP_PLANE                     2000.0f
 #define FOV                                50
-#define CAMERA_MOVEMENT_SPEED              .1f
+#define CAMERA_MOVEMENT_SPEED              .7f
 #define DEFAULT_CAMERA_POS     Vec3f(0, 0, 5)
 #define DEFAULT_CAMERA_ROT     Vec3f(0, 0, 0)
 #define LIGHT_INTENSITY                   1.5
@@ -30,13 +30,13 @@ Matrix ViewPort = Matrix::identity();
 Matrix ModelView = Matrix::identity();
 Matrix Projection = Matrix::identity();
 
-Model* model = new Model("african_head.obj");
+Model* model = new Model("sakura.obj");
 Camera camera;
 
 Vec3f light_dir = Vec3f(1, 1, 1).normalize();
 
 float* new_verts = (float*)malloc(4 * sizeof(float) * model->nverts());
-int* faces = (int*)malloc(3 * 3 * sizeof(int) * model->nfaces());
+cl_int3* faces = (cl_int3*)malloc(3 * sizeof(cl_int3) * model->nfaces());
 
 bool init_flag = false;
 
@@ -96,10 +96,13 @@ void render()
 	if (!init_flag) {
 		//light_dir = camera.GetForward().normalize() * -1;
 		viewport(0, 0, screen_width, screen_height, FAR_CLIP_PLANE, NEAR_CLIP_PLANE);
-		for (int i = 0; i < model->nfaces(); i++)
-			for (int j = 0; j < 3; j++)
-				for (int k = 0; k < 3; k++)
-					faces[i * 9 + j * 3 + k] = model->faces_[i][j][k];
+		for (int i = 0; i < model->nfaces(); i++) {
+			for (int j = 0; j < 3; j++) {
+				faces[i * 3 + j].x = model->faces_[i][j][0];
+				faces[i * 3 + j].y = model->faces_[i][j][1];
+				faces[i * 3 + j].z = model->faces_[i][j][2];
+			}
+		}
 		init_flag = true;
 	}
 

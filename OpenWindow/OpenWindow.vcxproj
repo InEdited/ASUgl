@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="geometry.cpp" />
+    <ClCompile Include="improv_gfx.cpp" />
     <ClCompile Include="kernels.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -158,6 +159,7 @@
   <ItemGroup>
     <ClInclude Include="geometry.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="improv_gfx.h" />
     <ClInclude Include="kernels.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="renderer.h" />

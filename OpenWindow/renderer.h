@@ -8,7 +8,9 @@ extern float* z_buffer;
 extern Camera camera;
 extern float TIME;
 
+
 void init_camera();
 void render();
+void free_renderer();
 int color_to_int(TGAColor col);
 #endif

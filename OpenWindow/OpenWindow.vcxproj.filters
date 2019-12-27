@@ -45,6 +45,9 @@
     <ClCompile Include="kernel_sources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="improv_gfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util_window.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kernels.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="improv_gfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

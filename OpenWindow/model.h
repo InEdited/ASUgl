@@ -4,6 +4,8 @@
 #include <string>
 #include "geometry.h"
 #include "tgaimage.h"
+#include "kernels.h"
+#include "util_window.h"
 
 class Model {
 private:
@@ -16,6 +18,22 @@ public:
     std::vector<std::vector<Vec3i> > faces_; // attention, this Vec3i means vertex/uv/normal
     std::vector<Vec3f> norms_;
     std::vector<Vec2f> uv_;
+	cl_program vertex_shader_prog;
+	cl_program fragment_shader_prog;
+	cl_kernel vertex_shader_kernel;
+	cl_kernel fragment_shader_kernel;
+	cl_mem vertex_shader_matz;
+	cl_mem vertex_shader_vertices;
+	cl_mem new_vertices_mem;
+	cl_mem fragment_shader_faces;
+	cl_mem fragment_shader_screen_width;
+	cl_mem fragment_shader_uv;
+	cl_mem fragment_shader_map_size;
+	cl_mem fragment_shader_norms;
+	cl_mem fragment_shader_light_dir;
+	cl_mem fragment_shader_diffuse_map;
+	cl_int3* faces;
+
     Model(const char *filename);
     ~Model();
     int nverts();
@@ -33,6 +51,11 @@ public:
 	void rotate(Vec3f rot);
 	void scale(Vec3f scl);
 	void ApplyTransform();
+	void init_kernels();
+	void vertex(float* z);
+	void fragment(float* light_dir);
+	void render(Matrix* z, float* light_dir);
+	void release_kernels();
     TGAColor diffuse(Vec2f uv);
     float specular(Vec2f uv);
     std::vector<int> face(int idx);

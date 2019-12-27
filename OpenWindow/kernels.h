@@ -32,24 +32,18 @@ extern const char* matrix_mul_kernel_source;
 extern const char* vertex_shader_kernel_source;
 extern const char* fragment_shader_kernel_source;
 
-void init_kernels();
-void vertex_shader(float* z, float* vertices, int vertex_count, float* new_vertices);
-void fragment_shader(
-		cl_int3* faces,
-		int nfaces,
-		float* uv,
-		size_t uv_size,
-		float* uniform_m,
-		float* uniform_mit,
-		float* light_dir,
-		unsigned char* diffuse_map,
-		float* norms,
-		size_t norms_size,
-		unsigned char* spec_map,
-		int* map_size
-);
+extern cl_command_queue commands;
+extern cl_platform_id* platforms;
+extern cl_device_id* devices;
+extern cl_context context;
 
+extern cl_mem z_buffer_mem;
+extern cl_mem pixel_data_buffer;
+
+void init_kernels();
 void destroy_kernels();
+void new_frame();
+void end_frame();
 
 
 

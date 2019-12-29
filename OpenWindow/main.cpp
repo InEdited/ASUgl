@@ -75,7 +75,7 @@ bool HandleButtonPressed() {
 
 void CALLBACK FixedUpdate(HWND hwnd, UINT message, UINT uInt, DWORD dWord)
 {
-	TIME += 0.03333333;
+	TIME += 1.f / (float)TARGET_FRAMERATE;
 	HandleButtonPressed();
 	camera.ApplyChanges();
 	clock_t start = clock();

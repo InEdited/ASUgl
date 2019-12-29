@@ -1,5 +1,5 @@
 #include "kernels.h"
-#include "util_window.h"
+#include "renderer.h"
 #include <debugapi.h>
 #include <ctime>
 #include <climits>
@@ -14,6 +14,7 @@ cl_context context;
 int* hidden_pixel_buffer;
 cl_mem z_buffer_mem;
 cl_mem pixel_data_buffer;
+cl_mem time_buffer;
 //==================
 
 cl_platform_id* platforms = NULL;
@@ -40,6 +41,7 @@ void init_kernels() {
 	hidden_pixel_buffer = new int[screen_width*screen_height];
 	pixel_data_buffer  = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int) * screen_height * screen_width  , NULL, &err);
 	z_buffer_mem       = clCreateBuffer(context, CL_MEM_READ_ONLY , sizeof(float) * screen_height * screen_width, NULL, &err);
+	time_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float), NULL, &err);
 }
 
 
@@ -50,6 +52,8 @@ void clear(cl_mem* buffer, size_t size, const int pattern) {
 void new_frame() {
 	clear(&pixel_data_buffer, sizeof(int) * screen_width * screen_height, 0);
 	clear(&z_buffer_mem, sizeof(float) * screen_width * screen_height, 0);
+	clEnqueueWriteBuffer(commands, time_buffer, CL_TRUE, 0, sizeof(float), &TIME, 0, NULL, NULL);
+	clFinish(commands);
 }
 
 void end_frame() {
@@ -65,6 +69,7 @@ void destroy_kernels()
 {
 	clReleaseMemObject(z_buffer_mem);
 	clReleaseMemObject(pixel_data_buffer);
+	clReleaseMemObject(time_buffer);
 	clReleaseCommandQueue(commands);
 
 	free(hidden_pixel_buffer);

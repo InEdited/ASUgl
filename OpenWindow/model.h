@@ -10,6 +10,7 @@
 class Model {
 private:
     void load_texture(std::string filename, const char *suffix, TGAImage &img);
+	int fluid;
 public:
     TGAImage diffusemap_;
     TGAImage normalmap_;
@@ -34,7 +35,7 @@ public:
 	cl_mem fragment_shader_diffuse_map;
 	cl_int3* faces;
 
-    Model(const char *filename);
+    Model(const char *filename, int watery);
     ~Model();
     int nverts();
     int nfaces();

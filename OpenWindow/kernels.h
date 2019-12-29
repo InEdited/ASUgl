@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <CL/cl.h>
 #include "geometry.h"
+#include "util_window.h"
 
 
 extern cl_uint numPlatforms;
@@ -31,6 +32,7 @@ extern const char* matrix_mul_kernel_source;
 
 extern const char* vertex_shader_kernel_source;
 extern const char* fragment_shader_kernel_source;
+extern const char* fluid_vertex_shader_kernel_source;
 
 extern cl_command_queue commands;
 extern cl_platform_id* platforms;
@@ -39,6 +41,7 @@ extern cl_context context;
 
 extern cl_mem z_buffer_mem;
 extern cl_mem pixel_data_buffer;
+extern cl_mem time_buffer;
 
 void init_kernels();
 void destroy_kernels();

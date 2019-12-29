@@ -6,7 +6,8 @@
 #define PI 3.14159265358979323846
 #define DEG2RAD PI/180
 
-Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_(), specularmap_() {
+Model::Model(const char *filename, int watery) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_(), specularmap_() {
+	fluid = watery;
     std::ifstream in;
 	Transform = Matrix::identity();
 	Rotation = Matrix::identity();
@@ -45,10 +46,7 @@ Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffus
             faces_.push_back(f);
         }
     }
-    //std::cerr << "# v# " << verts_.size() << " f# "  << faces_.size() << " vt# " << uv_.size() << " vn# " << norms_.size() << std::endl;
     load_texture(filename, "_diffuse.tga", diffusemap_);
-    //load_texture(filename, "_nm_tangent.tga",      normalmap_);
-    //load_texture(filename, "_spec.tga",    specularmap_);
 	init_kernels();
 }
 
@@ -112,7 +110,7 @@ void Model::load_texture(std::string filename, const char *suffix, TGAImage &img
     if (dot!=std::string::npos) {
         texfile = texfile.substr(0,dot) + std::string(suffix);
         std::cerr << "texture file " << texfile << " loading " << (img.read_tga_file(texfile.c_str()) ? "ok" : "failed") << std::endl;
-        img.flip_vertically();
+        //img.flip_vertically();
     }
 }
 
@@ -145,7 +143,10 @@ Vec3f Model::normal(int iface, int nthvert) {
 }
 
 void Model::init_kernels() {
-	vertex_shader_prog = clCreateProgramWithSource(context, 1, (const char **)&vertex_shader_kernel_source, NULL, &err);
+	if(fluid)
+		vertex_shader_prog = clCreateProgramWithSource(context, 1, (const char **)&fluid_vertex_shader_kernel_source, NULL, &err);
+	else
+		vertex_shader_prog = clCreateProgramWithSource(context, 1, (const char **)&vertex_shader_kernel_source, NULL, &err);
 	err = clBuildProgram(vertex_shader_prog, 1, devices, NULL, NULL, NULL);
 	vertex_shader_kernel = clCreateKernel(vertex_shader_prog, "vertex_shader", &err);
 	vertex_shader_matz = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * 16, NULL, &err);
@@ -155,6 +156,7 @@ void Model::init_kernels() {
 	clSetKernelArg(vertex_shader_kernel, 0, sizeof(cl_mem), &vertex_shader_matz);
 	clSetKernelArg(vertex_shader_kernel, 1, sizeof(cl_mem), &vertex_shader_vertices);
 	clSetKernelArg(vertex_shader_kernel, 2, sizeof(cl_mem), &new_vertices_mem);
+	clSetKernelArg(vertex_shader_kernel, 3, sizeof(cl_mem), &time_buffer);
 	clEnqueueWriteBuffer(commands, vertex_shader_vertices, CL_TRUE, 0, sizeof(float) * nverts() * 3, *(float**)((Vec3f*) &verts_), 0, NULL, NULL);
 
 	int map_size[] = { diffusemap_.get_width(), diffusemap_.get_height() };
@@ -242,15 +244,42 @@ void Model::release_kernels() {
 }
 
 
+const char* fluid_vertex_shader_kernel_source =
+"__kernel                                                                                                                    \n"
+"void vertex_shader( __global float* m,                                                                                      \n"
+"                    __global float* VertexBuffer,                                                                           \n"
+"                    __global float* NewVertexBuffer,                                                                        \n"
+"                    __global float* TIME           )                                                                        \n"
+"{                                                                                                                           \n"
+"    int local_index = get_local_id(0);                                                                                      \n"
+"    int global_index = get_group_id(0);                                                                                     \n"
+"    float AMPLITUDE = 5;                                                                                     \n"
+"    float FREQ = 2.0f;                                                                                     \n"
+"                                                                                                                            \n"
+"    float offset = 0.f;                                                                                                     \n"
+"    if(local_index == 1) {                                                                                                  \n"
+"    offset = (sin(TIME[0]*(fmod(10-VertexBuffer[3*global_index],5.f) * FREQ)) + sin(TIME[0]*(fmod(10-VertexBuffer[3*global_index+2], 5.f))*FREQ)) * AMPLITUDE;                                                                                                \n"
+"    }                                                                                                                       \n"
+"                                                                                                                            \n"
+"    NewVertexBuffer[4*global_index+local_index] =                                                                           \n"
+"						  m[local_index*4]*VertexBuffer[3*global_index]                                                      \n"
+"	                    + m[local_index*4 + 1]*VertexBuffer[3*global_index+1]                                                \n"
+"	                    + m[local_index*4 + 2]*VertexBuffer[3*global_index+2]                                                \n"
+"	                    + m[local_index*4 + 3]                                                                               \n"
+"	                    + offset;                                                                                            \n"
+"}                                                                                                                           \n";
+
 
 const char* vertex_shader_kernel_source =
 "__kernel                                                                                                                    \n"
 "void vertex_shader( __global float* m,                                                                                      \n"
 "                    __global float* VertexBuffer,                                                                           \n"
-"                    __global float* NewVertexBuffer)                                                                        \n"
+"                    __global float* NewVertexBuffer,                                                                        \n"
+"                    __global float* TIME           )                                                                        \n"
 "{                                                                                                                           \n"
 "    int local_index = get_local_id(0);                                                                                      \n"
 "    int global_index = get_group_id(0);                                                                                     \n"
+"                                                                                                                            \n"
 "    NewVertexBuffer[4*global_index+local_index] =                                                                           \n"
 "						  m[local_index*4]*VertexBuffer[3*global_index]                                                      \n"
 "	                    + m[local_index*4 + 1]*VertexBuffer[3*global_index+1]                                                \n"

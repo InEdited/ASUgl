@@ -17,7 +17,7 @@
 #define NEAR_CLIP_PLANE                    1.f 
 #define FAR_CLIP_PLANE                     2000.0f
 #define FOV                                50
-#define CAMERA_MOVEMENT_SPEED              .7f
+#define CAMERA_MOVEMENT_SPEED              .1f
 #define DEFAULT_CAMERA_POS     Vec3f(0, 0, 5)
 #define DEFAULT_CAMERA_ROT     Vec3f(0, 0, 0)
 #define LIGHT_INTENSITY                   1.5
@@ -29,7 +29,7 @@ Matrix Projection = Matrix::identity();
 Model* model, *model2;
 Camera camera;
 
-Vec3f light_dir = Vec3f(1, 1, 1).normalize();
+Vec3f light_dir = Vec3f(0, 1, 1).normalize();
 bool init_flag = false;
 
 void init_camera() {
@@ -66,6 +66,7 @@ void render()
 	Matrix z = ViewPort * Projection * ModelView;
 
 	new_frame();
+	Draw();
 	for(Model* model : models_in_scene)
 		model->render(&z, (float*)&light_dir);
 	end_frame();

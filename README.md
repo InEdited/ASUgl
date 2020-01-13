@@ -1,2 +1,2 @@
-# OhShitgl
-A graphics library built from scratch.
+# ImprovGFX
+A well written documentation for the project.
